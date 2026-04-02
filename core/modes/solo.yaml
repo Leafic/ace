@@ -1,0 +1,44 @@
+# ACE Solo Mode
+# 1인 개발 — 에이전트가 모든 역할 대행
+
+mode: solo
+
+pipeline:
+  # 스킵 가능 여부
+  allow_skip:
+    analyze: true      # 간단한 건 바로 dev 가능
+    design: true
+    test: false        # 테스트는 항상 수행
+
+  # 선행 조건 강제 여부
+  enforce_prerequisites: false
+
+agents:
+  # 자동 실행되는 에이전트
+  auto:
+    - reviewer         # 구현 후 자동 리뷰
+    - tester           # 테스트 자동 실행
+  # 수동 호출만 가능
+  manual:
+    - analyzer
+    - designer
+
+artifacts:
+  # 산출물 상세 수준
+  detail_level: minimal
+  # 산출물 포맷
+  format: markdown
+  # 타인 공유용 표준화 불필요
+  standardized: false
+
+commit:
+  # 역할 태그 불필요
+  role_tag: false
+  # 커밋 메시지 형식
+  format: "feat: {summary}"
+
+hooks:
+  # 소스 수정 권한 체크 비활성화
+  source_guard: false
+  # 역할 기반 차단 비활성화
+  role_block: false

@@ -1,0 +1,84 @@
+# ACE Profile Schema
+# 프로젝트별 .ace/profile.yaml의 스펙 정의
+
+required:
+  - name
+  - pack
+
+properties:
+  name:
+    type: string
+    description: 프로젝트 이름
+
+  mode:
+    type: string
+    enum: [solo, team]
+    default: solo
+    description: 작업 모드
+
+  pack:
+    type: string
+    enum: [dev, biz]
+    description: 스킬팩
+
+  stack:
+    type: object
+    description: 기술 스택 (pack=dev일 때)
+    properties:
+      backend:
+        type: string
+        enum: [fastapi, spring-boot, django, express, nestjs]
+      frontend:
+        type: string
+        enum: [nextjs, nuxtjs, react, vue, react-native]
+      db:
+        type: string
+        enum: [postgresql, mssql, mysql, mongodb]
+      infra:
+        type: string
+        enum: [docker, kubernetes, serverless]
+
+  roles:
+    type: array
+    description: 팀 역할 목록 (mode=team일 때)
+    items:
+      enum: [DEV, PLAN, PUBL]
+
+  mcp:
+    type: array
+    description: 활성화할 MCP 서버 목록
+    items:
+      type: string
+
+  issue_tracker:
+    type: object
+    description: 이슈 트래커 연동
+    properties:
+      type:
+        enum: [github, redmine, linear, jira, none]
+        default: none
+      url:
+        type: string
+      api_key_env:
+        type: string
+        description: API 키가 담긴 환경변수명
+
+  domain:
+    type: object
+    description: 도메인 지식 경로
+    properties:
+      terms:
+        type: string
+        description: 도메인 용어집 경로
+      docs:
+        type: string
+        description: 기획서/문서 폴더 경로
+
+  env:
+    type: object
+    description: OS별 환경 설정
+    properties:
+      mac:
+        type: object
+      windows:
+        type: object

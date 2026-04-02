@@ -1,0 +1,45 @@
+# ACE Pipeline State Machine
+# 태스크의 상태 전이를 정의
+
+states:
+  - name: created
+    description: 태스크 생성됨
+    transitions: [analyze, dev]    # solo에서는 바로 dev 가능
+
+  - name: analyze
+    description: 분석 진행 중
+    transitions: [design, dev]     # solo에서는 설계 스킵 가능
+
+  - name: design
+    description: 설계 진행 중
+    transitions: [dev]
+
+  - name: dev
+    description: 구현 진행 중
+    transitions: [review]
+
+  - name: review
+    description: 검증 진행 중 (자동)
+    transitions: [test, dev]       # 리뷰 실패 시 dev로 복귀
+
+  - name: test
+    description: 테스트 진행 중
+    transitions: [completed, dev]  # 테스트 실패 시 dev로 복귀
+
+  - name: completed
+    description: 태스크 완료
+
+# 각 상태의 산출물
+artifacts:
+  analyze:
+    file: analysis.md
+    agents: [analyzer]
+  design:
+    file: design.md
+    agents: [designer, design-critic]
+  dev:
+    file: development.md
+    agents: [reviewer]
+  test:
+    file: test.md
+    agents: [tester]

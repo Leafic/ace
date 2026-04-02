@@ -1,0 +1,58 @@
+# ACE Team Mode
+# 다인 협업 — 역할 분리 + 교차 검증
+
+mode: team
+
+pipeline:
+  # 스킵 불가 — 다른 사람이 산출물을 읽어야 함
+  allow_skip:
+    analyze: false
+    design: false
+    test: false
+
+  # 선행 조건 강제
+  enforce_prerequisites: true
+
+roles:
+  available:
+    - DEV              # 개발자
+    - PLAN             # 기획자
+    - PUBL             # 퍼블리셔
+  permissions:
+    DEV:
+      skills: [analyze, design, dev, test, exllm]
+      source_edit: true
+    PLAN:
+      skills: [analyze, design, doc]
+      source_edit: false
+    PUBL:
+      skills: [analyze, design, publ, test]
+      source_edit: true
+
+agents:
+  auto:
+    - reviewer         # 구현 후 자동 리뷰
+    - tester           # 테스트 자동 실행
+    - design-critic    # 설계 후 자동 비판
+  manual:
+    - analyzer
+    - designer
+    - cross-analyzer
+
+artifacts:
+  # 산출물 상세 수준
+  detail_level: full
+  format: markdown
+  # 타인이 읽을 수 있는 표준 포맷
+  standardized: true
+  # 담당자 배분 섹션 필수
+  require_assignment: true
+
+commit:
+  # 역할 태그 필수
+  role_tag: true
+  format: "[{role}] {summary}"
+
+hooks:
+  source_guard: true
+  role_block: true

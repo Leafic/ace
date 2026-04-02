@@ -1,0 +1,24 @@
+{
+  "name": "ace-engine",
+  "version": "1.0.0",
+  "description": "ACE — Agent-powered Code Engine. Claude Code 기반 태스크 파이프라인 프레임워크.",
+  "main": "ace",
+  "bin": {
+    "ace": "./ace"
+  },
+  "scripts": {
+    "test": "node ace --help"
+  },
+  "keywords": [
+    "claude-code",
+    "ai",
+    "pipeline",
+    "framework",
+    "agent"
+  ],
+  "author": "hjkim",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

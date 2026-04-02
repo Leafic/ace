@@ -1,0 +1,48 @@
+# ACE Biz Pack — 사업 아이디어 검증 파이프라인
+#
+# 아이디어 → 리서치 → 모델링 → 실행계획 → 판단
+# 코드를 쓰지 않고, 사업 아이디어의 타당성을 검증한다.
+
+name: biz
+description: 사업 아이디어 리서치 → 모델링 → 실행계획 → Go/No-Go 판단
+
+states:
+  - name: created
+    description: 아이디어 등록됨
+    transitions: [research]
+
+  - name: research
+    description: 시장/경쟁/고객 리서치
+    transitions: [model]
+
+  - name: model
+    description: 비즈니스 모델 캔버스 + 수익 구조
+    transitions: [plan, research]    # 모델링 후 추가 리서치 필요 시
+
+  - name: plan
+    description: 실행 계획 수립 (MVP, 로드맵, 리소스)
+    transitions: [judge, model]      # 계획 수립 후 모델 수정 필요 시
+
+  - name: judge
+    description: Go / No-Go / Pivot 판단
+    transitions: [completed, research]  # Pivot 시 리서치로 복귀
+
+  - name: completed
+    description: 판단 완료
+
+artifacts:
+  research:
+    file: research.md
+    agents: [researcher]
+  model:
+    file: model.md
+    agents: [modeler]
+  plan:
+    file: plan.md
+    agents: [planner]
+  judge:
+    file: judgement.md
+    agents: [judge]
+
+# solo 모드: 모든 단계 스킵 가능 (빠른 아이디어 검증)
+# team 모드: 순서 강제, 각 단계 산출물 필수

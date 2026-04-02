@@ -1,0 +1,51 @@
+# ACE Hook Engine — 실행 시점별 훅 정의
+#
+# 프로젝트에 ace init 시 .claude/settings.json에 훅으로 등록된다.
+# 각 훅은 JS 스크립트로, ace/core/hooks/ 또는 packs/{pack}/hooks/에 위치한다.
+
+# ─────────────────────────────────────────────
+# SessionStart — 세션 시작 시
+# ─────────────────────────────────────────────
+session_start:
+  - name: session-env
+    description: 프로젝트 프로필(profile.yaml) 로딩 및 환경변수 설정
+    script: session-env.js
+    layer: core
+
+# ─────────────────────────────────────────────
+# PreToolUse — 도구 실행 전 (검증/차단)
+# ─────────────────────────────────────────────
+pre_tool_use:
+  - name: task-pre-write
+    description: 파일 수정 시 역할/경로 권한 검증
+    triggers: [Write, Edit, Bash]
+    layer: core
+    mode: team  # solo에서는 비활성화
+
+# ─────────────────────────────────────────────
+# PostToolUse — 도구 실행 후 (상태 동기화)
+# ─────────────────────────────────────────────
+post_tool_use:
+  - name: task-post-write
+    description: 파일 수정 후 taskDetail.json / taskIndex.json 동기화
+    triggers: [Write, Edit, Bash]
+    layer: core
+
+# ─────────────────────────────────────────────
+# Stop — 세션 종료 시
+# ─────────────────────────────────────────────
+stop:
+  - name: task-stop
+    description: 태스크 단계 상태 갱신, 완료 요약 출력
+    timeout: 10000
+    layer: core
+
+# ─────────────────────────────────────────────
+# 레이어 설명
+# ─────────────────────────────────────────────
+# core: 프레임워크 기본 훅 (ace/core/hooks/)
+# pack: 스킬팩별 훅 (ace/packs/{pack}/hooks/) — core 이후 실행
+# project: 프로젝트별 커스텀 훅 (.ace/hooks/) — 가장 마지막 실행
+#
+# 실행 순서: core → pack → project
+# 각 레이어에서 동일 시점의 훅은 등록 순서대로 실행
