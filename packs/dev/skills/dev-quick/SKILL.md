@@ -1,3 +1,19 @@
+---
+name: ace-dev-quick
+description: "설계 없이 바로 개발 (버그픽스, 소규모 수정)"
+argument-hint: "[이슈번호]"
+user-invocable: true
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+  - AskUserQuestion
+---
+
 # /ace dev-quick — 간편 개발 (분석/설계 스킵)
 
 ## 사용법

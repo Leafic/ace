@@ -1,3 +1,19 @@
+---
+name: ace-model
+description: "비즈니스 모델 캔버스 + 수익 구조 설계"
+argument-hint: "[이슈번호]"
+user-invocable: true
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+  - AskUserQuestion
+---
+
 # /ace model — 비즈니스 모델 캔버스 + 수익 구조
 
 ## 사용법

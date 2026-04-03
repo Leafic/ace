@@ -1,3 +1,19 @@
+---
+name: ace-plan
+description: "MVP 정의 + 실행 계획 수립"
+argument-hint: "[이슈번호]"
+user-invocable: true
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+  - AskUserQuestion
+---
+
 # /ace plan — 실행 계획 수립
 
 ## 사용법

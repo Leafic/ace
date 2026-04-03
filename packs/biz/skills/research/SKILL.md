@@ -1,3 +1,19 @@
+---
+name: ace-research
+description: "시장/경쟁/고객 리서치"
+argument-hint: "[이슈번호]"
+user-invocable: true
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+  - AskUserQuestion
+---
+
 # /ace research — 시장/경쟁/고객 리서치
 
 ## 사용법

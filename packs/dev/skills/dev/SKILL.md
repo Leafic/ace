@@ -1,3 +1,19 @@
+---
+name: ace-dev
+description: "설계 기반 코드 구현"
+argument-hint: "[이슈번호]"
+user-invocable: true
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+  - AskUserQuestion
+---
+
 # /ace dev — 코드 구현
 
 ## 사용법

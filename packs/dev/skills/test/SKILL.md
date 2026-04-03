@@ -1,3 +1,19 @@
+---
+name: ace-test
+description: "테스트 계획 수립/실행/문서화"
+argument-hint: "[이슈번호]"
+user-invocable: true
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+  - AskUserQuestion
+---
+
 # /ace test — 테스트 계획/실행/문서화
 
 ## 사용법

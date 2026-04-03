@@ -1,3 +1,19 @@
+---
+name: ace-analyze
+description: "요구사항 다관점 분석"
+argument-hint: "[이슈번호]"
+user-invocable: true
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+  - AskUserQuestion
+---
+
 # /ace analyze — 요구사항 분석
 
 ## 사용법

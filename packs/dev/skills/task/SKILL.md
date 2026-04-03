@@ -1,3 +1,19 @@
+---
+name: ace-task
+description: "태스크 생성/상태 조회"
+argument-hint: "[start|status|history] [이슈번호]"
+user-invocable: true
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+  - AskUserQuestion
+---
+
 # /ace task — 태스크 관리
 
 ## 사용법

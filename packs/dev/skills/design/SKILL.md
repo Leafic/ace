@@ -1,3 +1,19 @@
+---
+name: ace-design
+description: "아키텍처/API/UI 설계"
+argument-hint: "[이슈번호]"
+user-invocable: true
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+  - AskUserQuestion
+---
+
 # /ace design — 아키텍처/API/UI 설계
 
 ## 사용법

@@ -1,3 +1,19 @@
+---
+name: ace-judge
+description: "Go/No-Go/Pivot 판단"
+argument-hint: "[이슈번호]"
+user-invocable: true
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+  - AskUserQuestion
+---
+
 # /ace judge — Go / No-Go / Pivot 판단
 
 ## 사용법
