@@ -294,6 +294,70 @@ function copyDirContents(src, dest) {
 }
 
 // ─────────────────────────────────────────────
+// add-pack 명령 — 기존 설치에 팩 추가
+// ─────────────────────────────────────────────
+
+function addPack() {
+  const pack = args[1]
+  if (!pack || !['dev', 'biz'].includes(pack)) {
+    console.log('\nUsage: ace add-pack <dev|biz>\n')
+    console.log('기존 스킬을 유지하면서 추가 팩의 스킬/에이전트를 설치합니다.')
+    process.exit(1)
+  }
+
+  const projectName = path.basename(CWD)
+  console.log(`\n📦 ACE add-pack — ${projectName} + ${pack}\n`)
+
+  const claudeDir = path.join(CWD, '.claude')
+  if (!fs.existsSync(claudeDir)) {
+    console.log('❌ .claude/ 디렉토리가 없습니다. 먼저 ace init을 실행하세요.')
+    process.exit(1)
+  }
+
+  // skills 추가
+  const skillsDir = path.join(claudeDir, 'skills')
+  const packSkillsDir = path.join(ACE_ROOT, 'packs', pack, 'skills')
+  if (fs.existsSync(packSkillsDir)) {
+    const skills = fs.readdirSync(packSkillsDir, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+    for (const skill of skills) {
+      const skillName = `ace-${skill.name}`
+      const targetDir = path.join(skillsDir, skillName)
+      mkdirSafe(targetDir)
+      copyDirContents(path.join(packSkillsDir, skill.name), targetDir)
+    }
+    console.log(`   ✓ skills/ — ${skills.length} skills added (ace-*)`)
+  }
+
+  // agents 추가
+  const agentsDir = path.join(claudeDir, 'agents')
+  mkdirSafe(agentsDir)
+  const packAgentsDir = path.join(ACE_ROOT, 'packs', pack, 'agents')
+  if (fs.existsSync(packAgentsDir)) {
+    const agents = fs.readdirSync(packAgentsDir).filter(f => f.endsWith('.md'))
+    for (const agent of agents) {
+      fs.copyFileSync(
+        path.join(packAgentsDir, agent),
+        path.join(agentsDir, agent)
+      )
+    }
+    console.log(`   ✓ agents/ — ${agents.length} agents added`)
+  }
+
+  // templates 추가
+  const templatesDir = path.join(CWD, '.ace', 'templates')
+  mkdirSafe(templatesDir)
+  const packTemplatesDir = path.join(ACE_ROOT, 'packs', pack, 'templates')
+  if (fs.existsSync(packTemplatesDir)) {
+    copyDirContents(packTemplatesDir, templatesDir)
+    console.log('   ✓ templates/ — artifact templates added')
+  }
+
+  console.log(`\n✅ ${pack} pack added to ${projectName}`)
+  console.log('   Claude Code를 재시작하면 새 스킬이 보입니다.\n')
+}
+
+// ─────────────────────────────────────────────
 // start 명령 — 대화형 세팅 가이드
 // ─────────────────────────────────────────────
 
@@ -388,6 +452,8 @@ if (command === 'init') {
   init()
 } else if (command === 'start') {
   start().catch(console.error)
+} else if (command === 'add-pack') {
+  addPack()
 } else {
   console.log(`
 ACE — Agent-powered Code Engine
@@ -395,10 +461,12 @@ ACE — Agent-powered Code Engine
 Usage:
   ace start                                        대화형 세팅 가이드
   ace init [--pack dev|biz] [--stack ...] [--mode solo|team]  직접 지정
+  ace add-pack <dev|biz>                           기존 설치에 팩 추가
 
 Commands:
-  start    대화형으로 팩/스택/모드를 선택하여 프로젝트 초기화
-  init     옵션을 직접 지정하여 프로젝트 초기화
+  start      대화형으로 팩/스택/모드를 선택하여 프로젝트 초기화
+  init       옵션을 직접 지정하여 프로젝트 초기화
+  add-pack   기존 스킬 유지하면서 추가 팩 설치 (dev+biz 동시 사용)
 
 Options (init):
   --pack   스킬팩 (default: dev)    dev | biz
