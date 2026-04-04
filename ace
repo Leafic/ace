@@ -314,12 +314,16 @@ function copyDirContents(src, dest) {
 function addPack() {
   const pack = args[1]
   if (!pack || !['dev', 'biz'].includes(pack)) {
-    console.log('\nUsage: ace add-pack <dev|biz>\n')
+    console.log('\nUsage: ace add-pack <dev|biz> [--stack nextjs-fastapi-pg] [--scaffold]\n')
     console.log('기존 스킬을 유지하면서 추가 팩의 스킬/에이전트를 설치합니다.')
+    console.log('--scaffold: dev 팩 추가 시 프로젝트 보일러플레이트 생성')
     process.exit(1)
   }
 
+  const stack = getArg('stack', 'nextjs-fastapi-pg')
+  const scaffold = args.includes('--scaffold')
   const projectName = path.basename(CWD)
+
   console.log(`\n📦 ACE add-pack — ${projectName} + ${pack}\n`)
 
   const claudeDir = path.join(CWD, '.claude')
@@ -358,6 +362,20 @@ function addPack() {
     console.log(`   ✓ agents/ — ${agents.length} agents added`)
   }
 
+  // rules 추가 (dev 팩 + 스택 컨벤션)
+  if (pack === 'dev') {
+    const rulesDir = path.join(claudeDir, 'rules')
+    mkdirSafe(rulesDir)
+    const stackDir = path.join(ACE_ROOT, 'stacks', stack)
+    if (fs.existsSync(stackDir)) {
+      const stackFiles = fs.readdirSync(stackDir).filter(f => f.startsWith('conv-'))
+      for (const f of stackFiles) {
+        fs.copyFileSync(path.join(stackDir, f), path.join(rulesDir, f))
+      }
+      console.log(`   ✓ rules/ — conventions added (${stack})`)
+    }
+  }
+
   // templates 추가
   const templatesDir = path.join(CWD, '.ace', 'templates')
   mkdirSafe(templatesDir)
@@ -367,8 +385,41 @@ function addPack() {
     console.log('   ✓ templates/ — artifact templates added')
   }
 
+  // scaffold (dev 팩 + --scaffold 옵션)
+  if (pack === 'dev' && scaffold) {
+    const scaffoldDir = path.join(ACE_ROOT, 'stacks', stack, 'scaffold')
+    if (fs.existsSync(scaffoldDir)) {
+      copyDirContents(scaffoldDir, CWD)
+      console.log(`   ✓ scaffold/ — ${stack} 보일러플레이트 생성`)
+    } else {
+      console.log(`   ⚠ scaffold 템플릿 없음 (${stack}) — Claude Code에서 생성 권장`)
+      console.log('     Claude Code 실행 후: "프로젝트 초기 구조를 만들어줘"')
+    }
+
+    // profile.yaml에 스택 정보 추가
+    const profilePath = path.join(CWD, '.ace', 'profile.yaml')
+    if (fs.existsSync(profilePath)) {
+      let profile = fs.readFileSync(profilePath, 'utf-8')
+      if (!profile.includes('stack:')) {
+        const stackParts = parseStack(stack)
+        const stackLines = ['\nstack:']
+        if (stackParts.backend) stackLines.push(`  backend: ${stackParts.backend}`)
+        if (stackParts.frontend) stackLines.push(`  frontend: ${stackParts.frontend}`)
+        if (stackParts.db) stackLines.push(`  db: ${stackParts.db}`)
+        profile = profile.replace(/^pack: .+$/m, `$&\n${stackLines.join('\n')}`)
+        fs.writeFileSync(profilePath, profile, 'utf-8')
+        console.log('   ✓ profile.yaml — stack 정보 추가')
+      }
+    }
+  }
+
   console.log(`\n✅ ${pack} pack added to ${projectName}`)
-  console.log('   Claude Code를 재시작하면 새 스킬이 보입니다.\n')
+  if (pack === 'dev') {
+    console.log('   Claude Code를 재시작하면 새 스킬이 보입니다.')
+    console.log(`   → /ace-task create "첫 번째 기능"  태스크 생성\n`)
+  } else {
+    console.log('   Claude Code를 재시작하면 새 스킬이 보입니다.\n')
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -475,12 +526,12 @@ ACE — Agent-powered Code Engine
 Usage:
   ace start                                        대화형 세팅 가이드
   ace init [--pack dev|biz] [--stack ...] [--mode solo|team]  직접 지정
-  ace add-pack <dev|biz>                           기존 설치에 팩 추가
+  ace add-pack <dev|biz> [--stack ...] [--scaffold]  기존 설치에 팩 추가
 
 Commands:
   start      대화형으로 팩/스택/모드를 선택하여 프로젝트 초기화
   init       옵션을 직접 지정하여 프로젝트 초기화
-  add-pack   기존 스킬 유지하면서 추가 팩 설치 (dev+biz 동시 사용)
+  add-pack   기존 스킬 유지하면서 추가 팩 설치 (--scaffold로 코드 구조 생성)
 
 Options (init):
   --pack   스킬팩 (default: dev)    dev | biz
