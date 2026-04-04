@@ -12,6 +12,8 @@ allowed-tools:
   - Bash
   - Agent
   - AskUserQuestion
+  - WebSearch
+  - WebFetch
 ---
 
 # /ace judge — Go / No-Go / Pivot 판단
@@ -19,74 +21,72 @@ allowed-tools:
 ## 사용법
 
 ```
-/ace judge [이슈번호]
+/ace-judge [이슈번호]
 ```
 
 ## 목적
 리서치, 모델링, 실행 계획을 종합하여 최종 의사결정을 지원한다.
 
+## ⚡ 이어하기 규칙 (필수)
+
+### 실행 전 체크
+1. `workspace/tasks/{번호}/judgement.md` 파일이 이미 존재하는지 확인한다.
+2. 존재하면 frontmatter의 `status`를 읽는다.
+   - `status: done` → "이미 완료된 판단입니다. 재평가하시겠습니까?" 확인
+   - `status: in_progress` → **이어하기 모드** 진입
+
+### 이어하기 모드
+1. 기존 judgement.md를 읽어 **어떤 섹션까지 작성되었는지** 파악한다.
+2. 비어있는 섹션부터 이어서 작성한다.
+3. 이미 완료된 섹션은 **절대 다시 작성하지 않는다.**
+
+### 섹션별 저장
+각 섹션 완료 시마다 judgement.md를 **즉시 저장**한다.
+
+## 에이전트 폴백 규칙
+
+1. `judge` 에이전트를 호출한다.
+2. 에이전트가 타임아웃/에러/불완전한 결과를 반환하면:
+   - 메인 세션이 직접 해당 섹션을 수행한다.
+   - `<!-- 에이전트 실패 — 메인 세션에서 직접 수행 -->` 주석을 남긴다.
+3. 에이전트를 재시도하지 않는다.
+
 ## 선행 조건
-- solo 모드: 최소 1개 이상의 선행 산출물 필요
-- team 모드: research + model + plan 모두 완료 필수
+- 최소 1개 이상의 선행 산출물 필요 (research.md, model.md, plan.md 중)
 
 ## 실행 흐름
 
 ### Step 1: 전체 산출물 로딩
 
-research.md, model.md, plan.md를 모두 읽는다.
+research.md, model.md, plan.md를 모두 읽는다 (있는 것만).
 
-### Step 2: 에이전트 호출
+**이어하기 시**: 기존 judgement.md의 완료 섹션 파악 후 스킵.
 
-`judge` 에이전트를 호출한다.
+### Step 2: 섹션별 판단 (완료된 섹션 스킵)
 
-### Step 3: 산출물 작성
+**섹션 1. 종합 평가**
+- 시장 기회 (30%), 실행 가능성 (25%), 수익성 (25%), 차별성 (20%)
+- 각 항목 1-10 점수 + 근거
+- 종합 점수 (가중 평균)
+→ 완료 시 judgement.md 저장
 
-`workspace/tasks/{번호}/judgement.md`를 작성한다.
+**섹션 2. 핵심 가정 검증 현황**
+- 각 가정의 검증 상태 (검증/미검증/반증)
+- 검증율 계산
+→ 완료 시 judgement.md 저장
 
-**판단 섹션:**
+**섹션 3. 시나리오 분석**
+- Best / Base / Worst case
+→ 완료 시 judgement.md 저장
 
-1. **종합 평가**
-   - 시장 기회 점수 (1-10) + 근거
-   - 실행 가능성 점수 (1-10) + 근거
-   - 수익성 점수 (1-10) + 근거
-   - 타이밍 점수 (1-10) + 근거
-   - 종합 점수 (가중 평균)
+**섹션 4. 판정 + 최종 권고**
+- Go / No-Go / Pivot 판정
+- 다음 행동, 재검토 시점
+→ 완료 시 judgement.md 저장, status: done
 
-2. **핵심 가정 검증 현황**
+### Step 3: 상태 갱신
 
-   | 가정 | 검증 상태 | 근거 |
-   |------|----------|------|
-   | ... | 검증됨/미검증/반증됨 | ... |
-
-3. **시나리오 분석**
-   - Best case: 조건 + 예상 결과
-   - Base case: 조건 + 예상 결과
-   - Worst case: 조건 + 예상 결과
-
-4. **판정**
-
-   **Go** 조건:
-   - 종합 점수 7+ 이고 핵심 가정 50% 이상 검증
-   - 손익분기점까지 자금 여유
-   - 차별점이 명확
-
-   **Pivot** 조건:
-   - 일부 가정 반증, 그러나 핵심 문제/시장은 유효
-   - 피벗 방향 제안 포함
-
-   **No-Go** 조건:
-   - 핵심 가정 다수 반증
-   - 시장 규모 또는 WTP 부족
-   - 실행 리스크 감당 불가
-
-5. **최종 권고**
-   - 판정: Go / No-Go / Pivot
-   - 다음 행동 (Go: 착수 항목 / Pivot: 방향 제안 / No-Go: 학습 정리)
-   - 재검토 시점 (해당 시)
-
-### Step 4: 상태 갱신
-
-- judgement.md frontmatter: `status: done`
+- judgement.md frontmatter: `status: done`, `verdict: Go/No-Go/Pivot`, `score: X.X`
 - taskDetail.json: `steps.judge.status: completed`
 
 ## 완료 시 출력

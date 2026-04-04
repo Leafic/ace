@@ -12,6 +12,8 @@ allowed-tools:
   - Bash
   - Agent
   - AskUserQuestion
+  - WebSearch
+  - WebFetch
 ---
 
 # /ace model — 비즈니스 모델 캔버스 + 수익 구조
@@ -19,60 +21,73 @@ allowed-tools:
 ## 사용법
 
 ```
-/ace model [이슈번호]
+/ace-model [이슈번호]
 ```
 
 ## 목적
 리서치 결과를 바탕으로 비즈니스 모델을 설계하고 수익 구조를 정의한다.
 
+## ⚡ 이어하기 규칙 (필수)
+
+### 실행 전 체크
+1. `workspace/tasks/{번호}/model.md` 파일이 이미 존재하는지 확인한다.
+2. 존재하면 frontmatter의 `status`를 읽는다.
+   - `status: done` → "이미 완료된 모델링입니다. 재작성하시겠습니까?" 확인
+   - `status: in_progress` → **이어하기 모드** 진입
+
+### 이어하기 모드
+1. 기존 model.md를 읽어 **어떤 섹션까지 작성되었는지** 파악한다.
+2. 내용이 비어있거나 `(미완료)`, `(TODO)` 마커가 있는 섹션부터 이어서 작성한다.
+3. 이미 완료된 섹션은 **절대 다시 작성하지 않는다.**
+
+### 섹션별 저장
+각 섹션 완료 시마다 model.md를 **즉시 저장**한다.
+
+## 에이전트 폴백 규칙
+
+1. `modeler` 에이전트를 호출한다.
+2. 에이전트가 타임아웃/에러/불완전한 결과를 반환하면:
+   - 메인 세션이 직접 해당 섹션을 수행한다.
+   - `<!-- 에이전트 실패 — 메인 세션에서 직접 수행 -->` 주석을 남긴다.
+3. 에이전트를 재시도하지 않는다.
+
 ## 선행 조건
-- solo 모드: research 완료 권장 (스킵 가능)
-- team 모드: research 완료 필수
+- research.md 완료 권장 (없어도 사용자 입력으로 진행 가능)
 
 ## 실행 흐름
 
 ### Step 1: 컨텍스트 로딩
 
-1. research.md 읽기
+1. research.md 읽기 (있으면)
 2. 사용자 추가 입력 수집
 
-### Step 2: 에이전트 호출
+**이어하기 시**: 기존 model.md의 완료 섹션 파악 후 스킵.
 
-`modeler` 에이전트를 호출한다.
+### Step 2: 섹션별 모델링 (완료된 섹션 스킵)
 
-### Step 3: 산출물 작성
+**섹션 1. 비즈니스 모델 캔버스 (BMC)**
+- 고객 세그먼트, 가치 제안, 채널, 고객 관계
+- 수익원, 핵심 자원, 핵심 활동, 핵심 파트너, 비용 구조
+→ 완료 시 model.md 저장
 
-`workspace/tasks/{번호}/model.md`를 작성한다.
+**섹션 2. 수익 모델**
+- 가격 전략 (프리미엄/구독/종량 등)
+- 가격 포인트 + 근거
+- 단위 경제학 (CAC, LTV, LTV/CAC)
+→ 완료 시 model.md 저장
 
-**모델링 섹션:**
+**섹션 3. 비용 구조**
+- 고정비 vs 변동비
+- 초기 투자 필요 항목
+- 손익분기점 추정
+→ 완료 시 model.md 저장
 
-1. **비즈니스 모델 캔버스 (BMC)**
-   - 고객 세그먼트 (Customer Segments)
-   - 가치 제안 (Value Propositions)
-   - 채널 (Channels)
-   - 고객 관계 (Customer Relationships)
-   - 수익원 (Revenue Streams)
-   - 핵심 자원 (Key Resources)
-   - 핵심 활동 (Key Activities)
-   - 핵심 파트너 (Key Partnerships)
-   - 비용 구조 (Cost Structure)
+**섹션 4. 핵심 가정 & 검증 방법**
+- 모델의 핵심 가정 목록
+- 각 가정의 검증 방법 제안
+→ 완료 시 model.md 저장, status: done
 
-2. **수익 모델**
-   - 가격 전략 (프리미엄/구독/종량 등)
-   - 가격 포인트 + 근거
-   - 예상 매출 시나리오 (보수적/기본/낙관적)
-   - 단위 경제학 (Unit Economics): CAC, LTV, LTV/CAC
-
-3. **비용 구조**
-   - 고정비 vs 변동비
-   - 초기 투자 필요 항목
-   - 손익분기점 추정
-
-4. **핵심 가정 & 검증 방법**
-   - 모델의 핵심 가정 목록
-   - 각 가정의 검증 방법 제안
-
-### Step 4: 상태 갱신
+### Step 3: 상태 갱신
 
 - model.md frontmatter: `status: done`
 - taskDetail.json: `steps.model.status: completed`
