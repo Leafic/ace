@@ -108,6 +108,7 @@ allowed-tools:
 [핵심 리스크]
 - Top 3 리스크 + 완화 방안
 
-[다음 단계]
-- Go/No-Go 판단 시 기준
+[다음 명령]
+→ /ace-judge   Go/No-Go/Pivot 최종 판단
+→ /ace-status  전체 파이프라인 현황 확인
 ```

@@ -103,4 +103,9 @@ research.md, model.md, plan.md를 모두 읽는다 (있는 것만).
 
 [다음 행동]
 - 즉시 해야 할 것
+
+[다음 명령]
+→ Go 판정 시: /ace-analyze 또는 /ace-dev-quick 으로 개발 시작
+→ Pivot 판정 시: /ace-research 로 새 방향 리서치
+→ /ace-status  전체 파이프라인 현황 확인
 ```

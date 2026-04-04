@@ -150,10 +150,24 @@ function setupClaude(pack, stack, mode) {
     console.log('   ✓ .claude/settings.json created (hooks registered)')
   }
 
-  // skills/ — 스킬 복사
+  // skills/ — 코어 스킬 + 팩 스킬 복사
   const skillsDir = path.join(claudeDir, 'skills')
   mkdirSafe(skillsDir)
 
+  // core skills (ace-status 등)
+  const coreSkillsDir = path.join(ACE_ROOT, 'core', 'skills')
+  if (fs.existsSync(coreSkillsDir)) {
+    const coreSkills = fs.readdirSync(coreSkillsDir, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+    for (const skill of coreSkills) {
+      const skillName = `ace-${skill.name}`
+      const targetDir = path.join(skillsDir, skillName)
+      mkdirSafe(targetDir)
+      copyDirContents(path.join(coreSkillsDir, skill.name), targetDir)
+    }
+  }
+
+  // pack skills
   const packSkillsDir = path.join(ACE_ROOT, 'packs', pack, 'skills')
   if (fs.existsSync(packSkillsDir)) {
     const skills = fs.readdirSync(packSkillsDir, { withFileTypes: true })
