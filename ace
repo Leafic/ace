@@ -263,14 +263,14 @@ function updateGitignore() {
   const gitignorePath = path.join(CWD, '.gitignore')
   const aceEntries = [
     '',
-    '# ACE workspace (local-only)',
-    'workspace/memo/',
-    'workspace/inbox/',
+    '# ACE (개인 분석 산출물 — 코드 레포에 포함하지 않음)',
+    'workspace/',
+    '.ace/',
   ]
 
   if (fs.existsSync(gitignorePath)) {
     const content = fs.readFileSync(gitignorePath, 'utf-8')
-    if (content.includes('# ACE workspace')) return // 이미 있음
+    if (content.includes('# ACE')) return // 이미 있음
     fs.appendFileSync(gitignorePath, aceEntries.join('\n') + '\n', 'utf-8')
   } else {
     fs.writeFileSync(gitignorePath, aceEntries.join('\n') + '\n', 'utf-8')
