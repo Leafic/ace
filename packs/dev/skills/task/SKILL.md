@@ -35,11 +35,33 @@ allowed-tools:
    - 설명 (선택): 사용자에게 "설명을 추가하시겠습니까?" 질문
    - 라벨 (선택): enhancement, bug, task 등
 
-2. **profile.yaml 확인**
+2. **중복 이슈 검사** (github 연동 시)
+
+   ```bash
+   gh issue list --search "제목 키워드" --state all --limit 5
+   ```
+
+   유사 이슈가 발견되면:
+   ```
+   ⚠ 유사한 이슈가 존재합니다:
+
+   | # | 제목 | 상태 |
+   |---|------|------|
+   | #3 | R2 presigned URL 구현 | open |
+   | #1 | 파일 업로드 기능 | closed |
+
+   [1] 기존 이슈 #3으로 태스크 시작
+   [2] 새 이슈를 그대로 생성
+   [3] 취소
+   ```
+
+   사용자 선택에 따라 분기한다.
+
+3. **profile.yaml 확인**
    - `issue_tracker.type`이 `github`이면 → `gh issue create` 실행
    - `none`이면 → 로컬 번호 자동 채번
 
-3. **GitHub Issue 생성** (github 연동 시)
+4. **GitHub Issue 생성** (github 연동 시)
 
    ```bash
    gh issue create --title "제목" --body "설명" --label "라벨"
@@ -47,7 +69,7 @@ allowed-tools:
 
    생성된 이슈 번호를 파싱한다.
 
-4. **태스크 자동 시작** — start 흐름으로 이어감
+5. **태스크 자동 시작** — start 흐름으로 이어감
 
 ### 출력
 
