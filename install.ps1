@@ -17,6 +17,13 @@
 
 $ErrorActionPreference = "Stop"
 
+function PauseAndExit($code) {
+    Write-Host ""
+    Write-Host "아무 키나 누르면 종료됩니다..." -ForegroundColor Gray
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    exit $code
+}
+
 $ACE_REPO = if ($env:ACE_REPO) { $env:ACE_REPO } else { "https://github.com/Leafic/ace.git" }
 $ACE_DIR = if ($env:ACE_HOME) { $env:ACE_HOME } else { "$env:USERPROFILE\.ace" }
 
@@ -32,7 +39,7 @@ try {
     $major = [int]($nodeVersion.Split('.')[0])
     if ($major -lt 16) {
         Write-Host "❌ Node.js 16+ 필요 (현재: v$nodeVersion)" -ForegroundColor Red
-        exit 1
+        PauseAndExit 1
     }
     Write-Host "✓ Node.js v$nodeVersion" -ForegroundColor Green
 } catch {
@@ -68,12 +75,12 @@ if (Test-Path $ACE_DIR) {
         } catch {
             Write-Host "  git pull 실패 — 수동 업데이트가 필요합니다." -ForegroundColor Red
             Pop-Location
-            exit 1
+            PauseAndExit 1
         }
         Pop-Location
     } else {
         Write-Host "  취소됨."
-        exit 0
+        PauseAndExit 0
     }
 } else {
     Write-Host "📦 ACE 설치 중... ($ACE_DIR)"
@@ -88,7 +95,7 @@ if (Test-Path $ACE_DIR) {
         Write-Host "   .\install.ps1"
         Write-Host ""
         Write-Host "   GitHub PAT 발급: https://github.com/settings/tokens"
-        exit 1
+        PauseAndExit 1
     }
 }
 
@@ -136,3 +143,4 @@ Write-Host ""
 Write-Host "  또는 대화형 세팅:"
 Write-Host "    ace start"
 Write-Host ""
+PauseAndExit 0
