@@ -202,7 +202,7 @@ function setupClaude(pack, stack, mode) {
   mkdirSafe(rulesDir)
 
   // core 공통 컨벤션
-  const coreConvs = ['conv-common.md', 'conv-security.md']
+  const coreConvs = ['conv-common.md', 'conv-security.md', 'conv-behavior.md']
   for (const conv of coreConvs) {
     const src = path.join(ACE_ROOT, 'core', conv)
     if (fs.existsSync(src)) {
