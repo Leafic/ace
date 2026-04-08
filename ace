@@ -510,6 +510,172 @@ async function start() {
 }
 
 // ─────────────────────────────────────────────
+// update 명령 — ACE 자체 업데이트 + 현재 프로젝트 스킬 갱신
+// ─────────────────────────────────────────────
+
+function update() {
+  const { execSync } = require('child_process')
+
+  console.log('\n🔄 ACE update\n')
+
+  // 1. ~/.ace/ 업데이트 (git pull)
+  const homeAce = path.join(require('os').homedir(), '.ace')
+  if (fs.existsSync(path.join(homeAce, '.git'))) {
+    console.log('   1/2 ACE 코어 업데이트 중...')
+    try {
+      execSync('git pull --ff-only origin main', { cwd: homeAce, stdio: 'pipe' })
+      console.log('   ✓ ~/.ace/ 최신 버전으로 업데이트')
+    } catch (e) {
+      console.log('   ⚠ git pull 실패 — 수동으로 cd ~/.ace && git pull 실행하세요')
+      return
+    }
+  } else {
+    console.log('   ⚠ ~/.ace/ 디렉토리가 없거나 git 레포가 아닙니다')
+    return
+  }
+
+  // 2. 현재 프로젝트에 .ace/profile.yaml이 있으면 스킬 갱신
+  const profilePath = path.join(CWD, '.ace', 'profile.yaml')
+  if (fs.existsSync(profilePath)) {
+    console.log('   2/2 현재 프로젝트 스킬 갱신 중...')
+    const profileContent = fs.readFileSync(profilePath, 'utf-8')
+
+    // profile.yaml에서 pack, stack, mode 파싱
+    const packMatch = profileContent.match(/^pack:\s*(.+)$/m)
+    const modeMatch = profileContent.match(/^mode:\s*(.+)$/m)
+    const pack = packMatch ? packMatch[1].trim() : 'dev'
+    const mode = modeMatch ? modeMatch[1].trim() : 'solo'
+
+    // 스택은 profile에서 읽거나 기본값
+    let stack = 'nextjs-fastapi-pg'
+    const backendMatch = profileContent.match(/backend:\s*(.+)$/m)
+    const frontendMatch = profileContent.match(/frontend:\s*(.+)$/m)
+    const dbMatch = profileContent.match(/db:\s*(.+)$/m)
+    if (backendMatch) {
+      const b = backendMatch[1].trim()
+      const f = frontendMatch ? frontendMatch[1].trim() : ''
+      const d = dbMatch ? dbMatch[1].trim() : ''
+      // 역으로 프리셋 매칭
+      if (b === 'fastapi' && f === 'nextjs') stack = 'nextjs-fastapi-pg'
+      else if (b === 'spring-boot' && f === 'vue') stack = 'spring-vue-mssql'
+      else if (b === 'django' && f === 'react') stack = 'django-react-pg'
+    }
+
+    // .claude/skills, agents, rules 갱신 (ACE_ROOT을 ~/.ace로 재설정)
+    const savedRoot = ACE_ROOT
+    // ACE_ROOT은 const이므로 setupClaude 내부에서 직접 homeAce 사용
+    // 대신 init 로직 재활용: skills, agents, rules 디렉토리 초기화 후 복사
+
+    const claudeDir = path.join(CWD, '.claude')
+
+    // skills 갱신
+    const skillsDir = path.join(claudeDir, 'skills')
+    // 기존 ace-* 스킬만 삭제 (사용자 커스텀 스킬 보존)
+    if (fs.existsSync(skillsDir)) {
+      const existing = fs.readdirSync(skillsDir, { withFileTypes: true })
+        .filter(d => d.isDirectory() && d.name.startsWith('ace-'))
+      for (const d of existing) {
+        fs.rmSync(path.join(skillsDir, d.name), { recursive: true })
+      }
+    }
+
+    // core skills
+    const coreSkillsDir = path.join(homeAce, 'core', 'skills')
+    if (fs.existsSync(coreSkillsDir)) {
+      const coreSkills = fs.readdirSync(coreSkillsDir, { withFileTypes: true })
+        .filter(d => d.isDirectory())
+      for (const skill of coreSkills) {
+        const targetDir = path.join(skillsDir, `ace-${skill.name}`)
+        mkdirSafe(targetDir)
+        copyDirContents(path.join(coreSkillsDir, skill.name), targetDir)
+      }
+    }
+
+    // pack skills — 현재 팩 + 추가 팩 모두 갱신
+    const installedPacks = [pack]
+    // 다른 팩 스킬이 이미 설치되어 있었는지 확인
+    const otherPack = pack === 'dev' ? 'biz' : 'dev'
+    const otherPackSkillsDir = path.join(homeAce, 'packs', otherPack, 'skills')
+    // 기존에 다른 팩 스킬이 있었으면 함께 갱신
+    if (fs.existsSync(otherPackSkillsDir)) {
+      const otherSkillNames = fs.readdirSync(otherPackSkillsDir, { withFileTypes: true })
+        .filter(d => d.isDirectory())
+        .map(d => `ace-${d.name}`)
+      // .claude/skills에 해당 스킬이 있었는지 확인 (이미 삭제했으므로 profile로 판단)
+      if (profileContent.includes(`pack: ${otherPack}`) || profileContent.includes(`# packs: ${pack}, ${otherPack}`)) {
+        installedPacks.push(otherPack)
+      }
+    }
+
+    let totalSkills = 0
+    for (const p of installedPacks) {
+      const packDir = path.join(homeAce, 'packs', p, 'skills')
+      if (fs.existsSync(packDir)) {
+        const skills = fs.readdirSync(packDir, { withFileTypes: true })
+          .filter(d => d.isDirectory())
+        for (const skill of skills) {
+          const targetDir = path.join(skillsDir, `ace-${skill.name}`)
+          mkdirSafe(targetDir)
+          copyDirContents(path.join(packDir, skill.name), targetDir)
+          totalSkills++
+        }
+      }
+    }
+    console.log(`   ✓ skills/ — ${totalSkills} skills 갱신`)
+
+    // agents 갱신
+    const agentsDir = path.join(claudeDir, 'agents')
+    mkdirSafe(agentsDir)
+    for (const p of installedPacks) {
+      const packAgentsDir = path.join(homeAce, 'packs', p, 'agents')
+      if (fs.existsSync(packAgentsDir)) {
+        const agents = fs.readdirSync(packAgentsDir).filter(f => f.endsWith('.md'))
+        for (const agent of agents) {
+          fs.copyFileSync(path.join(packAgentsDir, agent), path.join(agentsDir, agent))
+        }
+      }
+    }
+    console.log('   ✓ agents/ 갱신')
+
+    // rules 갱신
+    const rulesDir = path.join(claudeDir, 'rules')
+    mkdirSafe(rulesDir)
+    const coreConvs = ['conv-common.md', 'conv-security.md', 'conv-behavior.md']
+    for (const conv of coreConvs) {
+      const src = path.join(homeAce, 'core', conv)
+      if (fs.existsSync(src)) {
+        fs.copyFileSync(src, path.join(rulesDir, conv))
+      }
+    }
+    if (pack === 'dev') {
+      const stackDir = path.join(homeAce, 'stacks', stack)
+      if (fs.existsSync(stackDir)) {
+        const stackFiles = fs.readdirSync(stackDir).filter(f => f.startsWith('conv-'))
+        for (const f of stackFiles) {
+          fs.copyFileSync(path.join(stackDir, f), path.join(rulesDir, f))
+        }
+      }
+    }
+    console.log('   ✓ rules/ 갱신')
+
+    // templates 갱신
+    const templatesDir = path.join(CWD, '.ace', 'templates')
+    mkdirSafe(templatesDir)
+    const coreTemplatesDir = path.join(homeAce, 'core', 'templates')
+    if (fs.existsSync(coreTemplatesDir)) copyDirContents(coreTemplatesDir, templatesDir)
+    for (const p of installedPacks) {
+      const packTemplatesDir = path.join(homeAce, 'packs', p, 'templates')
+      if (fs.existsSync(packTemplatesDir)) copyDirContents(packTemplatesDir, templatesDir)
+    }
+    console.log('   ✓ templates/ 갱신')
+
+    console.log(`\n✅ 업데이트 완료 — Claude Code를 재시작하면 반영됩니다\n`)
+  } else {
+    console.log('   ✓ ACE 코어만 업데이트됨 (현재 디렉토리에 ACE 프로젝트 없음)\n')
+  }
+}
+
+// ─────────────────────────────────────────────
 // 메인
 // ─────────────────────────────────────────────
 
@@ -519,6 +685,8 @@ if (command === 'init') {
   start().catch(console.error)
 } else if (command === 'add-pack') {
   addPack()
+} else if (command === 'update') {
+  update()
 } else {
   console.log(`
 ACE — Agent-powered Code Engine
@@ -527,11 +695,13 @@ Usage:
   ace start                                        대화형 세팅 가이드
   ace init [--pack dev|biz] [--stack ...] [--mode solo|team]  직접 지정
   ace add-pack <dev|biz> [--stack ...] [--scaffold]  기존 설치에 팩 추가
+  ace update                                       최신 버전 업데이트 + 프로젝트 스킬 갱신
 
 Commands:
   start      대화형으로 팩/스택/모드를 선택하여 프로젝트 초기화
   init       옵션을 직접 지정하여 프로젝트 초기화
   add-pack   기존 스킬 유지하면서 추가 팩 설치 (--scaffold로 코드 구조 생성)
+  update     ~/.ace/ git pull + 현재 프로젝트 스킬/에이전트/규칙 갱신
 
 Options (init):
   --pack   스킬팩 (default: dev)    dev | biz
