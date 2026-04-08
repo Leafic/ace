@@ -2,15 +2,21 @@
 # ACE Installer — Windows (PowerShell)
 #
 # Usage:
-#   iwr https://raw.githubusercontent.com/hjkim/ace/main/install.ps1 | iex
-#   또는
-#   .\install.ps1
+#   1. PowerShell을 관리자 권한으로 실행
+#   2. 실행 정책 허용 (최초 1회):
+#      Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+#   3. 설치:
+#      .\install.ps1
+#
+# private 레포인 경우:
+#   방법 A — GitHub 개인 액세스 토큰 (PAT):
+#     $env:ACE_REPO = "https://<토큰>@github.com/Leafic/ace.git"; .\install.ps1
+#   방법 B — SSH (사전에 ssh-keygen + GitHub에 키 등록 필요):
+#     $env:ACE_REPO = "git@github.com:Leafic/ace.git"; .\install.ps1
 #
 
 $ErrorActionPreference = "Stop"
 
-# private 레포인 경우 SSH 사용:
-#   $env:ACE_REPO = "git@github.com:Leafic/ace.git"; .\install.ps1
 $ACE_REPO = if ($env:ACE_REPO) { $env:ACE_REPO } else { "https://github.com/Leafic/ace.git" }
 $ACE_DIR = if ($env:ACE_HOME) { $env:ACE_HOME } else { "$env:USERPROFILE\.ace" }
 
@@ -72,11 +78,16 @@ if (Test-Path $ACE_DIR) {
 } else {
     Write-Host "📦 ACE 설치 중... ($ACE_DIR)"
     try {
-        git clone --depth 1 $ACE_REPO $ACE_DIR
+        git clone --depth 1 $ACE_REPO $ACE_DIR 2>&1 | Out-Null
         Write-Host "✓ 클론 완료" -ForegroundColor Green
     } catch {
         Write-Host "❌ git clone 실패" -ForegroundColor Red
-        Write-Host "   레포 URL을 확인하세요: $ACE_REPO"
+        Write-Host ""
+        Write-Host "   private 레포라면 인증이 필요합니다:" -ForegroundColor Yellow
+        Write-Host '   $env:ACE_REPO = "https://<GitHub PAT>@github.com/Leafic/ace.git"'
+        Write-Host "   .\install.ps1"
+        Write-Host ""
+        Write-Host "   GitHub PAT 발급: https://github.com/settings/tokens"
         exit 1
     }
 }
