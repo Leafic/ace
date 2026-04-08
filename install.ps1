@@ -1,4 +1,4 @@
-#
+﻿#
 # ACE Installer — Windows (PowerShell)
 #
 # Usage:
@@ -123,10 +123,9 @@ if ($currentPath -notlike "*$ACE_DIR*") {
 # ─────────────────────────────────────────────
 $cmdWrapper = Join-Path $ACE_DIR "ace.cmd"
 if (-not (Test-Path $cmdWrapper)) {
-    @"
-@echo off
-node "%~dp0ace" %*
-"@ | Out-File -FilePath $cmdWrapper -Encoding ascii
+    $line1 = '@echo off'
+    $line2 = 'node "%~dp0ace" %*'
+    Set-Content -Path $cmdWrapper -Value "$line1`r`n$line2" -Encoding ascii
     Write-Host "✓ ace.cmd 래퍼 생성" -ForegroundColor Green
 }
 
