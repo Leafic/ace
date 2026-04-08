@@ -1,6 +1,6 @@
 ---
 name: ace-design
-description: "아키텍처/API/UI 설계"
+description: "분석 결과를 기반으로 파일목록/데이터모델/API/UI/설계결정을 포함한 design.md를 작성합니다. 사용자가 '설계', '아키텍처', 'API 설계'를 언급할 때 사용하세요."
 argument-hint: "[이슈번호]"
 user-invocable: true
 allowed-tools:
@@ -49,6 +49,7 @@ allowed-tools:
    - 메인 세션이 직접 해당 섹션을 수행한다.
    - `<!-- 에이전트 실패 — 메인 세션에서 직접 수행 -->` 주석을 남긴다.
 3. 에이전트를 재시도하지 않는다.
+4. 에이전트의 중간 출력(도구 실행 로그, 사고 과정)을 직접 읽지 않는다. 최종 결과만 수신한다.
 
 ## 실행 흐름
 

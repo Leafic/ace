@@ -1,6 +1,6 @@
 ---
 name: ace-task
-description: "태스크 생성/상태 조회/이슈 등록"
+description: "GitHub Issue 생성(create), 태스크 시작(start), 상태 조회(status), 이력(history), 목록(list)을 관리합니다. 사용자가 '태스크', '이슈', '작업 시작'을 언급할 때 사용하세요."
 argument-hint: "[create|start|status|history|list] [이슈번호|제목]"
 user-invocable: true
 allowed-tools:

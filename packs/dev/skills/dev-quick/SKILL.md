@@ -1,6 +1,6 @@
 ---
 name: ace-dev-quick
-description: "설계 없이 바로 개발 (버그픽스, 소규모 수정)"
+description: "분석/설계 없이 바로 코드를 구현합니다. 버그 수정, 소규모 변경, 설정 수정 등 간단한 작업용. 사용자가 '빠른 수정', '버그픽스', '간단한 변경'을 언급할 때 사용하세요."
 argument-hint: "[이슈번호]"
 user-invocable: true
 allowed-tools:

@@ -1,6 +1,6 @@
 ---
 name: ace-dev
-description: "설계 기반 코드 구현"
+description: "design.md 기반으로 DB→백엔드→프론트엔드 순서로 코드를 구현하고 gate 에이전트로 자동 검증합니다. 사용자가 '개발', '구현', '코딩'을 언급할 때 사용하세요."
 argument-hint: "[이슈번호]"
 user-invocable: true
 allowed-tools:
@@ -51,6 +51,7 @@ allowed-tools:
    - 메인 세션이 직접 검증을 수행한다.
    - development.md에 `<!-- gate 에이전트 실패 — 메인 세션에서 직접 검증 -->` 주석을 남긴다.
 3. 에이전트를 재시도하지 않는다.
+4. 에이전트의 중간 출력(도구 실행 로그, 사고 과정)을 직접 읽지 않는다. 최종 결과만 수신한다.
 
 ## 실행 흐름
 
