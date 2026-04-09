@@ -3,3 +3,7 @@ node_modules/
 *.log
 .DS_Store
 Thumbs.db
+
+# ACE (개인 분석 산출물 — 코드 레포에 포함하지 않음)
+workspace/
+.ace/
