@@ -1,95 +1,81 @@
-# ACE — Agent-powered Code Engine
+# ACE
 
-Claude Code 기반 태스크 파이프라인 프레임워크.
-프로젝트별 커스텀 환경을 주입하고, 에이전트가 분석/설계/구현/검증을 수행한다.
+ACE는 프로젝트에 작업 컨텍스트를 연결하고, 분석 → 설계 → 구현 → 검증 흐름을 바로 시작할 수 있게 해주는 CLI입니다.
 
-## 특징
+## 설치
 
-- **Solo / Team 모드** — 1인 개발부터 다인 협업까지
-- **스킬팩 교체** — dev(코드 개발), biz(사업 아이디어) 등 도메인별 파이프라인
-- **스택 프리셋** — 기술 스택별 컨벤션 자동 주입
-- **프로젝트 프로필** — `profile.yaml` 한 장으로 전체 환경 정의
-- **크로스 플랫폼** — macOS / Windows 지원
+- macOS / Linux: [README.mac.md](/Users/hjkim/project/ace/README.mac.md)
+- Windows: [README.windows.md](/Users/hjkim/project/ace/README.windows.md)
 
-## 구조
+설치 스크립트:
 
-```
-ace/
-├── core/                    # 프레임워크 코어 (불변)
-│   ├── modes/               # solo.yaml, team.yaml
-│   ├── hooks/               # 공통 훅 엔진
-│   ├── pipeline/            # 파이프라인 상태 머신
-│   └── templates/           # 산출물 템플릿 (solo/team)
-│
-├── packs/                   # 스킬팩 (교체 가능)
-│   ├── dev/                 # 코드 개발 (분석→설계→구현→검증)
-│   │   ├── skills/
-│   │   └── agents/
-│   └── biz/                 # 사업 아이디어 (리서치→모델링→판단)
-│       ├── skills/
-│       └── agents/
-│
-├── stacks/                  # 기술 스택 프리셋
-│   ├── nextjs-fastapi-pg/
-│   ├── spring-vue-mssql/
-│   └── react-native-expo/
-│
-├── docs/                    # 가이드 문서
-└── ace                      # CLI 진입점
-```
+- macOS / Linux: `install.sh`
+- Windows: `install.ps1`
 
-## 사용법
+## 설치 후 바로 이해해야 하는 흐름
+
+ACE는 이렇게 씁니다.
+
+1. ACE를 한 번 전역 설치합니다.
+2. 작업할 프로젝트 폴더로 이동합니다.
+3. `ace init`으로 그 프로젝트에 ACE 구성을 심습니다.
+4. 그 뒤 태스크를 만들고 `analyze → design → dev → test` 순서로 진행합니다.
+
+가장 짧은 예시는 아래입니다.
 
 ```bash
-# 프로젝트에 ACE 세팅
-cd ~/project/MyProject
+mkdir -p ~/project/ace-demo
+cd ~/project/ace-demo
 ace init --pack dev --stack nextjs-fastapi-pg --mode solo
-
-# 태스크 시작
-/ace task start #123
-
-# 파이프라인 실행
-/ace analyze → /ace design → /ace dev → /ace test
+ace
 ```
 
-## 프로젝트 프로필
+## 핵심 명령
 
-```yaml
-# .ace/profile.yaml
-name: RoverCare
-mode: team
-pack: dev
-
-stack:
-  backend: fastapi
-  frontend: nextjs
-  db: postgresql
-
-roles:
-  - DEV
-  - PLAN
-  - PUBL
-
-mcp:
-  - postgresql
-
-domain:
-  terms: ./domain/terms.md
+```bash
+ace start
+ace init --pack dev --stack nextjs-fastapi-pg --mode solo
+ace add-pack biz
+ace export-codex --pack dev --dest ~/.codex/skills
+ace update
 ```
 
-## 모드
+## 프로젝트에 무엇이 생기나
 
-| 모드 | 설명 |
-|------|------|
-| **solo** | 에이전트가 모든 역할 대행. 간소화된 산출물. 빠른 파이프라인. |
-| **team** | 역할 분리 + 권한 제어. 표준화된 산출물. 교차 리뷰. |
+`ace init`을 실행하면 프로젝트 안에 아래가 생성됩니다.
 
-## 스킬팩
+- `.ace/profile.yaml`
+- `.ace/templates/`
+- `.claude/skills/`
+- `.claude/agents/`
+- `.claude/rules/`
+- `workspace/tasks/`
 
-| 팩 | 파이프라인 |
-|----|-----------|
-| **dev** | 분석 → 설계 → 구현 → 검증 |
-| **biz** | 리서치 → 모델링 → 실행계획 → 판단 |
+즉, ACE 코어는 전역에 두고, 프로젝트별 컨텍스트와 산출물만 로컬에 둡니다.
+
+## Codex 사용
+
+Codex 앱/CLI에서 ACE 스킬을 쓰려면:
+
+```bash
+ace export-codex --pack dev --dest ~/.codex/skills
+```
+
+그 다음 Codex를 재시작하면 `$ace-analyze`, `$ace-dev` 같은 스킬을 사용할 수 있습니다.
+
+## 지원 구성
+
+- 모드: `solo`, `team`
+- 팩: `dev`, `biz`
+- 예시 스택:
+  - `nextjs-fastapi-pg`
+  - `spring-vue-mssql`
+  - `react-native-expo`
+  - `django-react-pg`
+
+## 저장소 주소
+
+- GitHub: `https://github.com/Leafic/ace`
 
 ## 라이선스
 

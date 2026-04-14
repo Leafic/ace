@@ -14,6 +14,7 @@
  */
 
 const fs = require('fs')
+const os = require('os')
 const path = require('path')
 const readline = require('readline')
 
@@ -305,6 +306,142 @@ function copyDirContents(src, dest) {
       fs.copyFileSync(srcPath, destPath)
     }
   }
+}
+
+function extractSkillParts(skillPath) {
+  const raw = fs.readFileSync(skillPath, 'utf-8')
+  const match = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/)
+  const frontmatter = match ? match[1] : ''
+  const body = match ? match[2] : raw
+  const nameMatch = frontmatter.match(/^name:\s*(.+)$/m)
+  const descriptionMatch = frontmatter.match(/^description:\s*["']?(.+?)["']?$/m)
+  const name = nameMatch ? nameMatch[1].trim().replace(/^["']|["']$/g, '') : path.basename(path.dirname(skillPath))
+  const description = descriptionMatch ? descriptionMatch[1].trim() : `${name} skill`
+  return { name, description, body }
+}
+
+function formatSkillDisplayName(skillName) {
+  return skillName
+    .split('-')
+    .map((part) => part.toUpperCase() === 'ACE'
+      ? 'ACE'
+      : part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+function clipText(text, maxLength) {
+  if (text.length <= maxLength) return text
+  return `${text.slice(0, maxLength - 1).trimEnd()}…`
+}
+
+function yamlQuote(value) {
+  return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
+}
+
+function createCodexSkillBundle(srcDir, destDir, skillDirName) {
+  mkdirSafe(destDir)
+  copyDirContents(srcDir, destDir)
+
+  const srcSkillPath = path.join(srcDir, 'SKILL.md')
+  if (!fs.existsSync(srcSkillPath)) return
+
+  const { name, description, body } = extractSkillParts(srcSkillPath)
+  const shortDescription = clipText(description, 64)
+  const defaultPrompt = clipText(`Use $${name} for this task.`, 128)
+  const skillMarkdown = [
+    '---',
+    `name: ${yamlQuote(name)}`,
+    `description: ${yamlQuote(description)}`,
+    'metadata:',
+    `  short-description: ${yamlQuote(shortDescription)}`,
+    '---',
+    '',
+    body.trimStart(),
+  ].join('\n')
+
+  fs.writeFileSync(path.join(destDir, 'SKILL.md'), `${skillMarkdown}\n`, 'utf-8')
+
+  const agentsDir = path.join(destDir, 'agents')
+  mkdirSafe(agentsDir)
+  const openaiYaml = [
+    'interface:',
+    `  display_name: ${yamlQuote(formatSkillDisplayName(name))}`,
+    `  short_description: ${yamlQuote(shortDescription)}`,
+    `  default_prompt: ${yamlQuote(defaultPrompt)}`,
+    '',
+    'policy:',
+    '  allow_implicit_invocation: true',
+    '',
+  ].join('\n')
+  fs.writeFileSync(path.join(agentsDir, 'openai.yaml'), openaiYaml, 'utf-8')
+}
+
+function exportCodexSkillsFromRoot(sourceRoot, pack, destRoot) {
+  const skillsToInstall = []
+
+  const coreSkillsDir = path.join(sourceRoot, 'core', 'skills')
+  if (fs.existsSync(coreSkillsDir)) {
+    const coreSkills = fs.readdirSync(coreSkillsDir, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+    for (const skill of coreSkills) {
+      skillsToInstall.push({
+        srcDir: path.join(coreSkillsDir, skill.name),
+        destDir: path.join(destRoot, `ace-${skill.name}`),
+      })
+    }
+  }
+
+  const packSkillsDir = path.join(sourceRoot, 'packs', pack, 'skills')
+  if (fs.existsSync(packSkillsDir)) {
+    const packSkills = fs.readdirSync(packSkillsDir, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+    for (const skill of packSkills) {
+      skillsToInstall.push({
+        srcDir: path.join(packSkillsDir, skill.name),
+        destDir: path.join(destRoot, `ace-${skill.name}`),
+      })
+    }
+  }
+
+  mkdirSafe(destRoot)
+  for (const skill of skillsToInstall) {
+    createCodexSkillBundle(skill.srcDir, skill.destDir)
+  }
+
+  return skillsToInstall.length
+}
+
+function exportCodexSkills() {
+  let pack = getArg('pack', null)
+  const destArg = getArg('dest', null)
+
+  const profilePath = path.join(CWD, '.ace', 'profile.yaml')
+  if (!pack && fs.existsSync(profilePath)) {
+    const profile = fs.readFileSync(profilePath, 'utf-8')
+    const match = profile.match(/^pack:\s*(.+)$/m)
+    pack = match ? match[1].trim() : 'dev'
+  }
+  if (!pack) pack = 'dev'
+
+  if (!['dev', 'biz'].includes(pack)) {
+    console.log('\nUsage: ace export-codex [--pack dev|biz] [--dest <path>]\n')
+    console.log('Codex 앱/CLI에서 읽을 수 있는 skill bundle을 생성합니다.')
+    process.exit(1)
+  }
+
+  const codexHome = process.env.CODEX_HOME || path.join(os.homedir(), '.codex')
+  const destRoot = path.resolve(destArg || path.join(CWD, '.codex', 'skills'))
+  const installedCount = exportCodexSkillsFromRoot(ACE_ROOT, pack, destRoot)
+
+  console.log(`\n🧠 ACE export-codex`)
+  console.log(`   pack: ${pack}`)
+  console.log(`   destination: ${destRoot}`)
+  console.log(`   ✓ ${installedCount} Codex skill bundles generated`)
+  if (!destArg) {
+    console.log('   ℹ 기본 경로는 프로젝트 로컬 .codex/skills 입니다')
+    console.log(`   ℹ Codex 앱에서 바로 쓰려면 --dest ${path.join(codexHome, 'skills')} 로 내보내세요`)
+  }
+  console.log('')
 }
 
 // ─────────────────────────────────────────────
@@ -669,6 +806,13 @@ function update() {
     }
     console.log('   ✓ templates/ 갱신')
 
+    const codexRoot = process.env.CODEX_HOME || path.join(os.homedir(), '.codex')
+    if (fs.existsSync(codexRoot)) {
+      const codexSkillsDir = path.join(codexRoot, 'skills')
+      const installedCount = exportCodexSkillsFromRoot(homeAce, pack, codexSkillsDir)
+      console.log(`   ✓ Codex skills/ 갱신 (${installedCount}개)`)
+    }
+
     console.log(`\n✅ 업데이트 완료 — Claude Code를 재시작하면 반영됩니다\n`)
   } else {
     console.log('   ✓ ACE 코어만 업데이트됨 (현재 디렉토리에 ACE 프로젝트 없음)\n')
@@ -685,6 +829,8 @@ if (command === 'init') {
   start().catch(console.error)
 } else if (command === 'add-pack') {
   addPack()
+} else if (command === 'export-codex') {
+  exportCodexSkills()
 } else if (command === 'update') {
   update()
 } else {
@@ -695,12 +841,14 @@ Usage:
   ace start                                        대화형 세팅 가이드
   ace init [--pack dev|biz] [--stack ...] [--mode solo|team]  직접 지정
   ace add-pack <dev|biz> [--stack ...] [--scaffold]  기존 설치에 팩 추가
+  ace export-codex [--pack dev|biz] [--dest <path>] Codex 앱용 스킬 번들 생성
   ace update                                       최신 버전 업데이트 + 프로젝트 스킬 갱신
 
 Commands:
   start      대화형으로 팩/스택/모드를 선택하여 프로젝트 초기화
   init       옵션을 직접 지정하여 프로젝트 초기화
   add-pack   기존 스킬 유지하면서 추가 팩 설치 (--scaffold로 코드 구조 생성)
+  export-codex Codex 앱/CLI에서 읽을 수 있는 skills 폴더 생성
   update     ~/.ace/ git pull + 현재 프로젝트 스킬/에이전트/규칙 갱신
 
 Options (init):

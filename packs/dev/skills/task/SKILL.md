@@ -75,8 +75,8 @@ allowed-tools:
 
 ```
 ═══ 이슈 생성 완료 ═══
-GitHub Issue: #5 — R2 파일 업로드 구현
-URL: https://github.com/Leafic/RoverCare/issues/5
+GitHub Issue: #5 — 파일 업로드 구현
+URL: https://github.com/your-org/your-repo/issues/5
 
 태스크 폴더 생성 중...
 ✓ workspace/tasks/5/taskDetail.json

@@ -4,12 +4,12 @@
 
 | 대상 | 규칙 | 예시 |
 |------|------|------|
-| 테이블 | snake_case, 복수형 | `clients`, `training_sessions` |
-| 컬럼 | snake_case | `created_at`, `trainer_id` |
+| 테이블 | snake_case, 복수형 | `users`, `task_items` |
+| 컬럼 | snake_case | `created_at`, `owner_id` |
 | PK | `id` (UUID) | 모든 테이블 공통 |
-| FK | `{참조테이블_단수}_id` | `client_id`, `dog_id` |
-| 인덱스 | `ix_{테이블}_{컬럼}` | `ix_sessions_trainer_id` |
-| 유니크 | `uq_{테이블}_{컬럼}` | `uq_trainers_email` |
+| FK | `{참조테이블_단수}_id` | `user_id`, `project_id` |
+| 인덱스 | `ix_{테이블}_{컬럼}` | `ix_task_items_owner_id` |
+| 유니크 | `uq_{테이블}_{컬럼}` | `uq_users_email` |
 
 ## 필수 컬럼
 
@@ -30,7 +30,7 @@
 | 페이징 | `LIMIT-OFFSET` 또는 커서 기반 |
 | 정렬 | `ORDER BY` 명시, 기본: `created_at DESC` |
 | N+1 방지 | `selectinload` / `joinedload` 활용 |
-| 불필요한 SELECT * | 필요한 컬럼만 선택 (`select(Client.id, Client.name)`) |
+| 불필요한 SELECT * | 필요한 컬럼만 선택 (`select(User.id, User.name)`) |
 
 ## 데이터 안전
 
