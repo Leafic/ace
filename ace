@@ -1041,6 +1041,19 @@ function validateSkills() {
     for (const term of forbiddenTerms) {
       if (raw.includes(term)) findings.push([rel, `금지 컨텍스트 의심어 발견: ${term}`])
     }
+
+    const isDevExecutionSkill = [
+      'packs/dev/skills/analyze/SKILL.md',
+      'packs/dev/skills/design/SKILL.md',
+      'packs/dev/skills/dev/SKILL.md',
+      'packs/dev/skills/dev-quick/SKILL.md',
+      'packs/dev/skills/test/SKILL.md',
+    ].includes(rel)
+    if (isDevExecutionSkill) {
+      if (!raw.includes('기획 정의 확인')) findings.push([rel, '기획 정의 확인 섹션이 없습니다'])
+      if (!raw.includes('유추')) findings.push([rel, '요구사항 유추 금지 규칙이 없습니다'])
+      if (!raw.includes('acceptance criteria')) findings.push([rel, 'acceptance criteria 확인 규칙이 없습니다'])
+    }
   }
 
   console.log('\n🧪 ACE validate-skills\n')
