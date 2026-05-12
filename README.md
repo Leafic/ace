@@ -74,6 +74,7 @@ ace export-codex --pack all --global
 ```
 
 그 다음 Codex를 재시작하면 `$ace-analyze`, `$ace-dev`, `$ace-research`, `$ace-coach` 같은 스킬을 사용할 수 있습니다.
+하네스 자체를 점검하려면 `$ace-karpathy-harness`로 context map, execution harness, verification gates를 설계할 수 있습니다.
 
 `~/.codex`가 이미 있으면 `ace export-codex`만 실행해도 기본적으로 전역 `~/.codex/skills`에 내보냅니다. 프로젝트 로컬에만 만들고 싶으면 `--local`을 사용하세요.
 
