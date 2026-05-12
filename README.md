@@ -87,6 +87,15 @@ ace export-codex --pack all --global
   - `react-native-expo`
   - `django-react-pg`
 
+## 작업 원칙
+
+ACE는 하네스와 스킬 실행 기준으로 카르파시 4원칙을 적용합니다.
+
+- `Think Before Coding`: 애매하면 추측하지 않고 가정/선택지/트레이드오프를 먼저 드러냅니다.
+- `Simplicity First`: 요청을 해결하는 최소 구현을 우선합니다.
+- `Surgical Changes`: 변경 범위를 좁게 유지하고 관련 없는 리팩토링을 섞지 않습니다.
+- `Goal-Driven Execution`: 완료 기준과 검증 결과를 기준으로 작업을 닫습니다.
+
 ## 저장소 주소
 
 - GitHub: `https://github.com/Leafic/ace`

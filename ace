@@ -1006,6 +1006,20 @@ function validateSkills() {
     .filter(Boolean)
   const files = collectSkillFiles()
   const findings = []
+  const behaviorPath = path.join(ACE_ROOT, 'core', 'conv-behavior.md')
+  const behavior = fs.existsSync(behaviorPath) ? fs.readFileSync(behaviorPath, 'utf-8') : ''
+  const karpathyPrinciples = [
+    'Think Before Coding',
+    'Simplicity First',
+    'Surgical Changes',
+    'Goal-Driven Execution',
+  ]
+
+  for (const principle of karpathyPrinciples) {
+    if (!behavior.includes(principle)) {
+      findings.push([path.relative(ACE_ROOT, behaviorPath), `카르파시 4원칙 누락: ${principle}`])
+    }
+  }
 
   for (const file of files) {
     const raw = fs.readFileSync(file, 'utf-8')
