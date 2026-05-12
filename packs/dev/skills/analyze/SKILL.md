@@ -20,10 +20,12 @@ allowed-tools:
 
 ```
 /ace-analyze [이슈번호]
+/ace-analyze
 ```
 
 ## 선행 조건
-- 태스크가 생성되어 있어야 함 (`/ace-task start`)
+- 이슈번호가 있으면 태스크가 생성되어 있어야 함 (`/ace-task start`)
+- 이슈번호가 없으면 `workspace/current/analysis.md`를 사용한다.
 
 ## 저토큰 모드
 
@@ -34,10 +36,17 @@ allowed-tools:
 - 미해결 사항이 없으면 `없음` 1건만 적는다.
 - 완료 요약은 최대 3줄로 끝낸다.
 
+## 번호 없는 실행 모드
+
+- 이슈번호가 없으면 `workspace/current/` 디렉토리를 생성해서 사용한다.
+- 산출물은 `workspace/current/analysis.md`에 저장한다.
+- 입력은 사용자 요청, `workspace/current/brief.md`, `README.md`, 관련 문서를 우선 읽는다.
+- 이 경우 `taskDetail.json` 갱신은 생략한다.
+
 ## ⚡ 이어하기 규칙 (필수)
 
 ### 실행 전 체크
-1. `workspace/tasks/{번호}/analysis.md` 파일이 이미 존재하는지 확인한다.
+1. 이슈번호가 있으면 `workspace/tasks/{번호}/analysis.md`, 없으면 `workspace/current/analysis.md` 파일이 이미 존재하는지 확인한다.
 2. 존재하면 frontmatter의 `status`를 읽는다.
    - `status: done` → "이미 완료된 분석입니다. 재분석하시겠습니까?" 확인
    - `status: in_progress` → **이어하기 모드** 진입
@@ -70,6 +79,7 @@ allowed-tools:
 
 - 이슈 트래커의 설명/첨부
 - `workspace/tasks/{번호}/planning/` 폴더의 기획서
+- `workspace/current/brief.md` 또는 사용자가 지정한 문서
 - 사용자가 대화로 제공한 요구사항
 
 **이어하기 시**: 기존 analysis.md 상단 요약이 있으면 스킵.
@@ -99,7 +109,7 @@ allowed-tools:
 ### Step 3: 상태 갱신
 
 - analysis.md frontmatter: `status: done`
-- taskDetail.json: `steps.analysis.status: completed`
+- 이슈번호가 있을 때만 taskDetail.json의 `steps.analysis.status: completed` 갱신
 
 ## 완료 시 출력
 

@@ -5,12 +5,12 @@
  *
  * Usage:
  *   ace start                  — 대화형 세팅 가이드
- *   ace init [--pack dev|biz] [--stack nextjs-fastapi-pg|...] [--mode solo|team]
+ *   ace init [--pack dev|biz|all] [--stack nextjs-fastapi-pg|...] [--mode solo|team]
  *
  * 프로젝트 디렉토리에서 실행하면:
  * 1. .ace/profile.yaml 생성
  * 2. .claude/ 디렉토리에 스킬/에이전트/훅/규칙 심볼릭 링크 또는 복사
- * 3. workspace/tasks/ 디렉토리 생성
+ * 3. workspace/current, workspace/tasks/ 디렉토리 생성
  */
 
 const fs = require('fs')
@@ -20,6 +20,7 @@ const readline = require('readline')
 
 const ACE_ROOT = path.resolve(__dirname)
 const CWD = process.cwd()
+const KNOWN_PACKS = ['dev', 'biz']
 
 // ─────────────────────────────────────────────
 // CLI 파싱
@@ -34,6 +35,10 @@ function getArg(name, defaultValue) {
   return args[idx + 1]
 }
 
+function hasFlag(name) {
+  return args.includes(`--${name}`)
+}
+
 // ─────────────────────────────────────────────
 // init 명령
 // ─────────────────────────────────────────────
@@ -43,9 +48,10 @@ function init() {
   const stack = getArg('stack', 'nextjs-fastapi-pg')
   const mode = getArg('mode', 'solo')
   const projectName = path.basename(CWD)
+  const packs = normalizePacks(pack)
 
   console.log(`\n🔧 ACE init — ${projectName}`)
-  console.log(`   pack: ${pack}, stack: ${stack}, mode: ${mode}\n`)
+  console.log(`   packs: ${packs.join(', ')}, stack: ${stack}, mode: ${mode}\n`)
 
   // 1. .ace/ 디렉토리 생성
   const aceDir = path.join(CWD, '.ace')
@@ -56,28 +62,29 @@ function init() {
   if (fs.existsSync(profilePath)) {
     console.log('   ⚠ profile.yaml already exists, skipping')
   } else {
-    const profile = generateProfile(projectName, pack, stack, mode)
+    const profile = generateProfile(projectName, packs, stack, mode)
     fs.writeFileSync(profilePath, profile, 'utf-8')
     console.log('   ✓ .ace/profile.yaml created')
   }
 
   // 3. workspace/ 구조 생성
   mkdirSafe(path.join(CWD, 'workspace'))
+  mkdirSafe(path.join(CWD, 'workspace', 'current'))
   mkdirSafe(path.join(CWD, 'workspace', 'tasks'))
   const taskIndexPath = path.join(CWD, 'workspace', 'tasks', 'taskIndex.json')
   if (!fs.existsSync(taskIndexPath)) {
     fs.writeFileSync(taskIndexPath, JSON.stringify({ tasks: [] }, null, 2), 'utf-8')
   }
-  console.log('   ✓ workspace/tasks/ created')
+  console.log('   ✓ workspace/current, workspace/tasks created')
 
   // 4. .claude/ 설정 생성
-  setupClaude(pack, stack, mode)
+  setupClaude(packs, stack, mode)
 
   // 5. .gitignore 갱신
   updateGitignore()
 
   console.log(`\n✅ ACE initialized for ${projectName}`)
-  console.log(`   Run: /ace task start <issue#> to begin\n`)
+  console.log(`   Run: ace doctor to verify the harness\n`)
 }
 
 // ─────────────────────────────────────────────
@@ -85,6 +92,8 @@ function init() {
 // ─────────────────────────────────────────────
 
 function generateProfile(name, pack, stack, mode) {
+  const packs = normalizePacks(pack)
+  const primaryPack = packs[0]
   const stackParts = parseStack(stack)
   const lines = [
     `# ACE Project Profile`,
@@ -92,11 +101,19 @@ function generateProfile(name, pack, stack, mode) {
     ``,
     `name: ${name}`,
     `mode: ${mode}`,
-    `pack: ${pack}`,
+    `pack: ${primaryPack}  # backward-compatible primary pack`,
+    `packs:`,
+    ...packs.map((p) => `  - ${p}`),
+    `targets:`,
+    `  claude: true`,
+    `  codex: true`,
+    `workspace:`,
+    `  current: workspace/current`,
+    `  tasks: workspace/tasks`,
     ``,
   ]
 
-  if (pack === 'dev') {
+  if (packs.includes('dev')) {
     lines.push(`stack:`)
     if (stackParts.backend) lines.push(`  backend: ${stackParts.backend}`)
     if (stackParts.frontend) lines.push(`  frontend: ${stackParts.frontend}`)
@@ -107,7 +124,7 @@ function generateProfile(name, pack, stack, mode) {
   if (mode === 'team') {
     lines.push(`roles:`)
     lines.push(`  - DEV`)
-    if (pack === 'dev') lines.push(`  - PUBL`)
+    if (packs.includes('dev')) lines.push(`  - PUBL`)
     lines.push(`  - PLAN`)
     lines.push(``)
   }
@@ -140,6 +157,7 @@ function parseStack(stack) {
 // ─────────────────────────────────────────────
 
 function setupClaude(pack, stack, mode) {
+  const packs = normalizePacks(pack)
   const claudeDir = path.join(CWD, '.claude')
   mkdirSafe(claudeDir)
 
@@ -169,34 +187,42 @@ function setupClaude(pack, stack, mode) {
   }
 
   // pack skills
-  const packSkillsDir = path.join(ACE_ROOT, 'packs', pack, 'skills')
-  if (fs.existsSync(packSkillsDir)) {
-    const skills = fs.readdirSync(packSkillsDir, { withFileTypes: true })
-      .filter(d => d.isDirectory())
-    for (const skill of skills) {
-      const skillName = `ace-${skill.name}`
-      const targetDir = path.join(skillsDir, skillName)
-      mkdirSafe(targetDir)
-      copyDirContents(path.join(packSkillsDir, skill.name), targetDir)
+  let installedSkillCount = 0
+  for (const singlePack of packs) {
+    const packSkillsDir = path.join(ACE_ROOT, 'packs', singlePack, 'skills')
+    if (fs.existsSync(packSkillsDir)) {
+      const skills = fs.readdirSync(packSkillsDir, { withFileTypes: true })
+        .filter(d => d.isDirectory())
+      for (const skill of skills) {
+        const skillName = `ace-${skill.name}`
+        const targetDir = path.join(skillsDir, skillName)
+        mkdirSafe(targetDir)
+        copyDirContents(path.join(packSkillsDir, skill.name), targetDir)
+        installedSkillCount++
+      }
     }
-    console.log(`   ✓ .claude/skills/ — ${skills.length} skills installed (ace-*)`)
   }
+  console.log(`   ✓ .claude/skills/ — ${installedSkillCount} pack skills installed (ace-*)`)
 
   // agents/ — 에이전트 복사
   const agentsDir = path.join(claudeDir, 'agents')
   mkdirSafe(agentsDir)
 
-  const packAgentsDir = path.join(ACE_ROOT, 'packs', pack, 'agents')
-  if (fs.existsSync(packAgentsDir)) {
-    const agents = fs.readdirSync(packAgentsDir).filter(f => f.endsWith('.md'))
-    for (const agent of agents) {
-      fs.copyFileSync(
-        path.join(packAgentsDir, agent),
-        path.join(agentsDir, agent)
-      )
+  let installedAgentCount = 0
+  for (const singlePack of packs) {
+    const packAgentsDir = path.join(ACE_ROOT, 'packs', singlePack, 'agents')
+    if (fs.existsSync(packAgentsDir)) {
+      const agents = fs.readdirSync(packAgentsDir).filter(f => f.endsWith('.md'))
+      for (const agent of agents) {
+        fs.copyFileSync(
+          path.join(packAgentsDir, agent),
+          path.join(agentsDir, agent)
+        )
+        installedAgentCount++
+      }
     }
-    console.log(`   ✓ .claude/agents/ — ${agents.length} agents installed`)
   }
+  console.log(`   ✓ .claude/agents/ — ${installedAgentCount} agents installed`)
 
   // rules/ — 코어 컨벤션 + 스택 컨벤션 복사
   const rulesDir = path.join(claudeDir, 'rules')
@@ -212,7 +238,7 @@ function setupClaude(pack, stack, mode) {
   }
 
   // 스택별 컨벤션
-  if (pack === 'dev') {
+  if (packs.includes('dev')) {
     const stackDir = path.join(ACE_ROOT, 'stacks', stack)
     if (fs.existsSync(stackDir)) {
       const stackFiles = fs.readdirSync(stackDir).filter(f => f.startsWith('conv-'))
@@ -236,10 +262,12 @@ function setupClaude(pack, stack, mode) {
     copyDirContents(coreTemplatesDir, templatesDir)
   }
 
-  // pack templates (biz의 경우)
-  const packTemplatesDir = path.join(ACE_ROOT, 'packs', pack, 'templates')
-  if (fs.existsSync(packTemplatesDir)) {
-    copyDirContents(packTemplatesDir, templatesDir)
+  // pack templates
+  for (const singlePack of packs) {
+    const packTemplatesDir = path.join(ACE_ROOT, 'packs', singlePack, 'templates')
+    if (fs.existsSync(packTemplatesDir)) {
+      copyDirContents(packTemplatesDir, templatesDir)
+    }
   }
   console.log('   ✓ .ace/templates/ — artifact templates installed')
 }
@@ -291,6 +319,85 @@ function mkdirSafe(dir) {
 
 function aceDir(cwd) {
   return path.join(cwd, '.ace')
+}
+
+function normalizePacks(pack) {
+  const input = Array.isArray(pack) ? pack : [pack]
+  const expanded = input.flatMap((p) => {
+    const value = String(p || 'dev').trim()
+    return value === 'all' ? KNOWN_PACKS : [value]
+  })
+  const packs = [...new Set(expanded)].filter((p) => KNOWN_PACKS.includes(p))
+  if (packs.length === 0) {
+    console.log('\nUsage: --pack dev|biz|all\n')
+    process.exit(1)
+  }
+  return packs
+}
+
+function readProfile(cwd = CWD) {
+  const profilePath = path.join(cwd, '.ace', 'profile.yaml')
+  if (!fs.existsSync(profilePath)) return ''
+  return fs.readFileSync(profilePath, 'utf-8')
+}
+
+function parseProfilePacks(profileContent) {
+  const packs = new Set()
+  const packMatch = profileContent.match(/^pack:\s*([^\s#]+)/m)
+  if (packMatch) packs.add(packMatch[1].trim())
+
+  const packsBlock = profileContent.match(/^packs:\n((?:\s+-\s*.+\n?)+)/m)
+  if (packsBlock) {
+    const matches = packsBlock[1].matchAll(/^\s+-\s*([^\s#]+)/gm)
+    for (const match of matches) packs.add(match[1].trim())
+  }
+
+  return [...packs].filter((p) => KNOWN_PACKS.includes(p))
+}
+
+function discoverInstalledPacks(cwd = CWD, profileContent = readProfile(cwd)) {
+  const packs = new Set(parseProfilePacks(profileContent))
+  const claudeSkillsDir = path.join(cwd, '.claude', 'skills')
+  if (fs.existsSync(path.join(claudeSkillsDir, 'ace-analyze'))) packs.add('dev')
+  if (fs.existsSync(path.join(claudeSkillsDir, 'ace-research'))) packs.add('biz')
+  if (packs.size === 0) packs.add('dev')
+  return normalizePacks([...packs])
+}
+
+function updateProfilePacks(profilePath, nextPacks) {
+  if (!fs.existsSync(profilePath)) return
+  const packs = normalizePacks(nextPacks)
+  let profile = fs.readFileSync(profilePath, 'utf-8')
+
+  if (profile.match(/^pack:\s*.+$/m)) {
+    profile = profile.replace(/^pack:\s*.+$/m, `pack: ${packs[0]}  # backward-compatible primary pack`)
+  } else {
+    profile = profile.replace(/^mode:\s*.+$/m, `$&\npack: ${packs[0]}  # backward-compatible primary pack`)
+  }
+
+  const packsYaml = ['packs:', ...packs.map((p) => `  - ${p}`)].join('\n')
+  if (profile.match(/^packs:\n(?:\s+-\s*.+\n?)+/m)) {
+    profile = profile.replace(/^packs:\n(?:\s+-\s*.+\n?)+/m, packsYaml + '\n')
+  } else {
+    profile = profile.replace(/^pack:\s*.+$/m, `$&\n${packsYaml}`)
+  }
+
+  if (!profile.includes('targets:')) {
+    profile = profile.replace(/^packs:\n(?:\s+-\s*.+\n?)+/m, `$&targets:\n  claude: true\n  codex: true\n`)
+  }
+  if (!profile.includes('workspace:')) {
+    profile = profile.replace(/^targets:\n(?:\s+.+\n?)+/m, `$&workspace:\n  current: workspace/current\n  tasks: workspace/tasks\n`)
+  }
+
+  fs.writeFileSync(profilePath, profile, 'utf-8')
+}
+
+function resolveCodexDest(destArg) {
+  if (destArg) return path.resolve(destArg)
+  if (hasFlag('local')) return path.join(CWD, '.codex', 'skills')
+  const codexHome = process.env.CODEX_HOME || path.join(os.homedir(), '.codex')
+  if (hasFlag('global') || fs.existsSync(codexHome)) return path.join(codexHome, 'skills')
+  return path.join(CWD, '.codex', 'skills')
 }
 
 function copyDirContents(src, dest) {
@@ -377,6 +484,7 @@ function createCodexSkillBundle(srcDir, destDir, skillDirName) {
 }
 
 function exportCodexSkillsFromRoot(sourceRoot, pack, destRoot) {
+  const packs = Array.isArray(pack) ? pack : [pack]
   const skillsToInstall = []
 
   const coreSkillsDir = path.join(sourceRoot, 'core', 'skills')
@@ -391,15 +499,17 @@ function exportCodexSkillsFromRoot(sourceRoot, pack, destRoot) {
     }
   }
 
-  const packSkillsDir = path.join(sourceRoot, 'packs', pack, 'skills')
-  if (fs.existsSync(packSkillsDir)) {
-    const packSkills = fs.readdirSync(packSkillsDir, { withFileTypes: true })
-      .filter((d) => d.isDirectory())
-    for (const skill of packSkills) {
-      skillsToInstall.push({
-        srcDir: path.join(packSkillsDir, skill.name),
-        destDir: path.join(destRoot, `ace-${skill.name}`),
-      })
+  for (const singlePack of packs) {
+    const packSkillsDir = path.join(sourceRoot, 'packs', singlePack, 'skills')
+    if (fs.existsSync(packSkillsDir)) {
+      const packSkills = fs.readdirSync(packSkillsDir, { withFileTypes: true })
+        .filter((d) => d.isDirectory())
+      for (const skill of packSkills) {
+        skillsToInstall.push({
+          srcDir: path.join(packSkillsDir, skill.name),
+          destDir: path.join(destRoot, `ace-${skill.name}`),
+        })
+      }
     }
   }
 
@@ -417,29 +527,28 @@ function exportCodexSkills() {
 
   const profilePath = path.join(CWD, '.ace', 'profile.yaml')
   if (!pack && fs.existsSync(profilePath)) {
-    const profile = fs.readFileSync(profilePath, 'utf-8')
-    const match = profile.match(/^pack:\s*(.+)$/m)
-    pack = match ? match[1].trim() : 'dev'
+    const installedPacks = discoverInstalledPacks(CWD, fs.readFileSync(profilePath, 'utf-8'))
+    pack = installedPacks.length > 1 ? 'all' : installedPacks[0]
   }
-  if (!pack) pack = 'dev'
+  if (!pack) pack = 'all'
 
-  if (!['dev', 'biz'].includes(pack)) {
-    console.log('\nUsage: ace export-codex [--pack dev|biz] [--dest <path>]\n')
+  if (!['dev', 'biz', 'all'].includes(pack)) {
+    console.log('\nUsage: ace export-codex [--pack dev|biz|all] [--global|--local|--dest <path>]\n')
     console.log('Codex 앱/CLI에서 읽을 수 있는 skill bundle을 생성합니다.')
     process.exit(1)
   }
 
-  const codexHome = process.env.CODEX_HOME || path.join(os.homedir(), '.codex')
-  const destRoot = path.resolve(destArg || path.join(CWD, '.codex', 'skills'))
-  const installedCount = exportCodexSkillsFromRoot(ACE_ROOT, pack, destRoot)
+  const destRoot = resolveCodexDest(destArg)
+  const packs = pack === 'all' ? ['dev', 'biz'] : [pack]
+  const installedCount = exportCodexSkillsFromRoot(ACE_ROOT, packs, destRoot)
 
   console.log(`\n🧠 ACE export-codex`)
-  console.log(`   pack: ${pack}`)
+  console.log(`   pack: ${packs.join(', ')}`)
   console.log(`   destination: ${destRoot}`)
   console.log(`   ✓ ${installedCount} Codex skill bundles generated`)
   if (!destArg) {
-    console.log('   ℹ 기본 경로는 프로젝트 로컬 .codex/skills 입니다')
-    console.log(`   ℹ Codex 앱에서 바로 쓰려면 --dest ${path.join(codexHome, 'skills')} 로 내보내세요`)
+    console.log('   ℹ 기본 경로는 ~/.codex가 있으면 전역 ~/.codex/skills, 없으면 프로젝트 로컬 .codex/skills 입니다')
+    console.log('   ℹ 명시하려면 --global, --local, --dest <path>를 사용하세요')
   }
   console.log('')
 }
@@ -465,9 +574,11 @@ function addPack() {
 
   const claudeDir = path.join(CWD, '.claude')
   if (!fs.existsSync(claudeDir)) {
-    console.log('❌ .claude/ 디렉토리가 없습니다. 먼저 ace init을 실행하세요.')
-    process.exit(1)
+    mkdirSafe(claudeDir)
+    console.log('   ℹ .claude/ 디렉토리가 없어 새로 생성합니다')
   }
+  mkdirSafe(path.join(CWD, 'workspace', 'current'))
+  mkdirSafe(path.join(CWD, 'workspace', 'tasks'))
 
   // skills 추가
   const skillsDir = path.join(claudeDir, 'skills')
@@ -522,6 +633,14 @@ function addPack() {
     console.log('   ✓ templates/ — artifact templates added')
   }
 
+  // profile.yaml pack 목록 갱신
+  const profilePath = path.join(CWD, '.ace', 'profile.yaml')
+  if (fs.existsSync(profilePath)) {
+    const installedPacks = discoverInstalledPacks(CWD, fs.readFileSync(profilePath, 'utf-8'))
+    updateProfilePacks(profilePath, [...installedPacks, pack])
+    console.log(`   ✓ profile.yaml — packs: ${normalizePacks([...installedPacks, pack]).join(', ')}`)
+  }
+
   // scaffold (dev 팩 + --scaffold 옵션)
   if (pack === 'dev' && scaffold) {
     const scaffoldDir = path.join(ACE_ROOT, 'stacks', stack, 'scaffold')
@@ -534,7 +653,6 @@ function addPack() {
     }
 
     // profile.yaml에 스택 정보 추가
-    const profilePath = path.join(CWD, '.ace', 'profile.yaml')
     if (fs.existsSync(profilePath)) {
       let profile = fs.readFileSync(profilePath, 'utf-8')
       if (!profile.includes('stack:')) {
@@ -550,12 +668,19 @@ function addPack() {
     }
   }
 
+  const codexHome = process.env.CODEX_HOME || path.join(os.homedir(), '.codex')
+  if (fs.existsSync(codexHome)) {
+    const installedPacks = discoverInstalledPacks(CWD)
+    const installedCount = exportCodexSkillsFromRoot(ACE_ROOT, installedPacks, path.join(codexHome, 'skills'))
+    console.log(`   ✓ Codex skills/ — ${installedCount} bundles synced globally`)
+  }
+
   console.log(`\n✅ ${pack} pack added to ${projectName}`)
   if (pack === 'dev') {
-    console.log('   Claude Code를 재시작하면 새 스킬이 보입니다.')
-    console.log(`   → /ace-task create "첫 번째 기능"  태스크 생성\n`)
+    console.log('   Claude Code/Codex를 재시작하면 새 스킬이 보입니다.')
+    console.log(`   → ace doctor 로 설치 상태를 확인하세요\n`)
   } else {
-    console.log('   Claude Code를 재시작하면 새 스킬이 보입니다.\n')
+    console.log('   Claude Code/Codex를 재시작하면 새 스킬이 보입니다.\n')
   }
 }
 
@@ -678,10 +803,9 @@ function update() {
     const profileContent = fs.readFileSync(profilePath, 'utf-8')
 
     // profile.yaml에서 pack, stack, mode 파싱
-    const packMatch = profileContent.match(/^pack:\s*(.+)$/m)
     const modeMatch = profileContent.match(/^mode:\s*(.+)$/m)
-    const pack = packMatch ? packMatch[1].trim() : 'dev'
     const mode = modeMatch ? modeMatch[1].trim() : 'solo'
+    const installedPacks = discoverInstalledPacks(CWD, profileContent)
 
     // 스택은 profile에서 읽거나 기본값
     let stack = 'nextjs-fastapi-pg'
@@ -728,22 +852,6 @@ function update() {
       }
     }
 
-    // pack skills — 현재 팩 + 추가 팩 모두 갱신
-    const installedPacks = [pack]
-    // 다른 팩 스킬이 이미 설치되어 있었는지 확인
-    const otherPack = pack === 'dev' ? 'biz' : 'dev'
-    const otherPackSkillsDir = path.join(homeAce, 'packs', otherPack, 'skills')
-    // 기존에 다른 팩 스킬이 있었으면 함께 갱신
-    if (fs.existsSync(otherPackSkillsDir)) {
-      const otherSkillNames = fs.readdirSync(otherPackSkillsDir, { withFileTypes: true })
-        .filter(d => d.isDirectory())
-        .map(d => `ace-${d.name}`)
-      // .claude/skills에 해당 스킬이 있었는지 확인 (이미 삭제했으므로 profile로 판단)
-      if (profileContent.includes(`pack: ${otherPack}`) || profileContent.includes(`# packs: ${pack}, ${otherPack}`)) {
-        installedPacks.push(otherPack)
-      }
-    }
-
     let totalSkills = 0
     for (const p of installedPacks) {
       const packDir = path.join(homeAce, 'packs', p, 'skills')
@@ -784,7 +892,7 @@ function update() {
         fs.copyFileSync(src, path.join(rulesDir, conv))
       }
     }
-    if (pack === 'dev') {
+    if (installedPacks.includes('dev')) {
       const stackDir = path.join(homeAce, 'stacks', stack)
       if (fs.existsSync(stackDir)) {
         const stackFiles = fs.readdirSync(stackDir).filter(f => f.startsWith('conv-'))
@@ -809,14 +917,130 @@ function update() {
     const codexRoot = process.env.CODEX_HOME || path.join(os.homedir(), '.codex')
     if (fs.existsSync(codexRoot)) {
       const codexSkillsDir = path.join(codexRoot, 'skills')
-      const installedCount = exportCodexSkillsFromRoot(homeAce, pack, codexSkillsDir)
+      const installedCount = exportCodexSkillsFromRoot(homeAce, installedPacks, codexSkillsDir)
       console.log(`   ✓ Codex skills/ 갱신 (${installedCount}개)`)
     }
 
-    console.log(`\n✅ 업데이트 완료 — Claude Code를 재시작하면 반영됩니다\n`)
+    mkdirSafe(path.join(CWD, 'workspace', 'current'))
+    mkdirSafe(path.join(CWD, 'workspace', 'tasks'))
+    updateProfilePacks(profilePath, installedPacks)
+
+    console.log(`\n✅ 업데이트 완료 — Claude Code/Codex를 재시작하면 반영됩니다\n`)
   } else {
     console.log('   ✓ ACE 코어만 업데이트됨 (현재 디렉토리에 ACE 프로젝트 없음)\n')
   }
+}
+
+// ─────────────────────────────────────────────
+// doctor 명령 — 프로젝트/전역 하네스 상태 점검
+// ─────────────────────────────────────────────
+
+function doctor() {
+  const profilePath = path.join(CWD, '.ace', 'profile.yaml')
+  const profileContent = readProfile(CWD)
+  const codexHome = process.env.CODEX_HOME || path.join(os.homedir(), '.codex')
+  const codexSkillsDir = path.join(codexHome, 'skills')
+  const installedPacks = discoverInstalledPacks(CWD, profileContent)
+
+  const checks = [
+    ['profile', fs.existsSync(profilePath), '.ace/profile.yaml'],
+    ['workspace-current', fs.existsSync(path.join(CWD, 'workspace', 'current')), 'workspace/current'],
+    ['workspace-tasks', fs.existsSync(path.join(CWD, 'workspace', 'tasks', 'taskIndex.json')), 'workspace/tasks/taskIndex.json'],
+    ['claude-skills', fs.existsSync(path.join(CWD, '.claude', 'skills')), '.claude/skills'],
+    ['codex-skills', fs.existsSync(codexSkillsDir), codexSkillsDir],
+    ['codex-dev-pack', !installedPacks.includes('dev') || fs.existsSync(path.join(codexSkillsDir, 'ace-analyze')), 'ace-analyze'],
+    ['codex-biz-pack', !installedPacks.includes('biz') || fs.existsSync(path.join(codexSkillsDir, 'ace-research')), 'ace-research'],
+  ]
+
+  console.log('\n🩺 ACE doctor\n')
+  console.log(`   project: ${path.basename(CWD)}`)
+  console.log(`   packs: ${installedPacks.join(', ')}`)
+  console.log(`   codex: ${codexSkillsDir}`)
+  console.log('')
+
+  let hasMissing = false
+  for (const [name, ok, target] of checks) {
+    console.log(`   ${ok ? '✓' : '✗'} ${name}: ${target}`)
+    if (!ok) hasMissing = true
+  }
+
+  console.log('')
+  if (hasMissing) {
+    console.log('   Next:')
+    if (!fs.existsSync(profilePath)) console.log('   - ace init --pack dev --stack nextjs-fastapi-pg --mode solo')
+    if (!fs.existsSync(codexSkillsDir)) console.log('   - ace export-codex --pack all --global')
+    console.log('   - ace update')
+  } else {
+    console.log('   ✓ Harness looks ready for Claude Code and Codex.')
+  }
+  console.log('')
+}
+
+// ─────────────────────────────────────────────
+// validate-skills 명령 — 스킬 배포 전 정적 점검
+// ─────────────────────────────────────────────
+
+function collectSkillFiles() {
+  const roots = [
+    path.join(ACE_ROOT, 'core', 'skills'),
+    path.join(ACE_ROOT, 'packs', 'dev', 'skills'),
+    path.join(ACE_ROOT, 'packs', 'biz', 'skills'),
+  ]
+  const files = []
+  for (const root of roots) {
+    if (!fs.existsSync(root)) continue
+    const entries = fs.readdirSync(root, { withFileTypes: true })
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue
+      const skillPath = path.join(root, entry.name, 'SKILL.md')
+      if (fs.existsSync(skillPath)) files.push(skillPath)
+    }
+  }
+  return files.sort()
+}
+
+function validateSkills() {
+  const forbiddenTerms = (process.env.ACE_FORBIDDEN_TERMS || '')
+    .split(',')
+    .map((term) => term.trim())
+    .filter(Boolean)
+  const files = collectSkillFiles()
+  const findings = []
+
+  for (const file of files) {
+    const raw = fs.readFileSync(file, 'utf-8')
+    const match = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/)
+    const frontmatter = match ? match[1] : ''
+    const body = match ? match[2] : raw
+    const nameMatch = frontmatter.match(/^name:\s*(.+)$/m)
+    const descriptionMatch = frontmatter.match(/^description:\s*["']?(.+?)["']?$/m)
+    const name = nameMatch ? nameMatch[1].trim().replace(/^["']|["']$/g, '') : ''
+    const description = descriptionMatch ? descriptionMatch[1].trim() : ''
+    const rel = path.relative(ACE_ROOT, file)
+
+    if (!match) findings.push([rel, 'frontmatter가 없습니다'])
+    if (!/^ace-[a-z0-9-]+$/.test(name)) findings.push([rel, `name 형식 오류: ${name || '(missing)'}`])
+    if (description.length < 20) findings.push([rel, 'description이 너무 짧습니다'])
+    if (!body.includes('## 사용법')) findings.push([rel, '사용법 섹션이 없습니다'])
+    if (!body.includes('## 출력') && !body.includes('## 완료 시 출력')) findings.push([rel, '출력/완료 출력 섹션이 없습니다'])
+    if (!body.includes('status:')) findings.push([rel, '산출물 status 규칙이 없습니다'])
+    for (const term of forbiddenTerms) {
+      if (raw.includes(term)) findings.push([rel, `금지 컨텍스트 의심어 발견: ${term}`])
+    }
+  }
+
+  console.log('\n🧪 ACE validate-skills\n')
+  console.log(`   checked: ${files.length} skills`)
+  if (findings.length === 0) {
+    console.log('   ✓ all skills passed baseline validation\n')
+    return
+  }
+
+  for (const [file, message] of findings) {
+    console.log(`   ✗ ${file}: ${message}`)
+  }
+  console.log('')
+  process.exit(1)
 }
 
 // ─────────────────────────────────────────────
@@ -833,16 +1057,22 @@ if (command === 'init') {
   exportCodexSkills()
 } else if (command === 'update') {
   update()
+} else if (command === 'doctor') {
+  doctor()
+} else if (command === 'validate-skills') {
+  validateSkills()
 } else {
   console.log(`
 ACE — Agent-powered Code Engine
 
 Usage:
   ace start                                        대화형 세팅 가이드
-  ace init [--pack dev|biz] [--stack ...] [--mode solo|team]  직접 지정
+  ace init [--pack dev|biz|all] [--stack ...] [--mode solo|team]  직접 지정
   ace add-pack <dev|biz> [--stack ...] [--scaffold]  기존 설치에 팩 추가
-  ace export-codex [--pack dev|biz] [--dest <path>] Codex 앱용 스킬 번들 생성
+  ace export-codex [--pack dev|biz|all] [--global|--local|--dest <path>] Codex 앱용 스킬 번들 생성
   ace update                                       최신 버전 업데이트 + 프로젝트 스킬 갱신
+  ace doctor                                       프로젝트/전역 스킬 설치 상태 점검
+  ace validate-skills                              배포 전 스킬 정적 점검
 
 Commands:
   start      대화형으로 팩/스택/모드를 선택하여 프로젝트 초기화
@@ -850,9 +1080,11 @@ Commands:
   add-pack   기존 스킬 유지하면서 추가 팩 설치 (--scaffold로 코드 구조 생성)
   export-codex Codex 앱/CLI에서 읽을 수 있는 skills 폴더 생성
   update     ~/.ace/ git pull + 현재 프로젝트 스킬/에이전트/규칙 갱신
+  doctor     .ace, workspace, .claude, ~/.codex 상태 점검
+  validate-skills 스킬 frontmatter/출력 규칙/민감 컨텍스트 점검
 
 Options (init):
-  --pack   스킬팩 (default: dev)    dev | biz
+  --pack   스킬팩 (default: dev)    dev | biz | all
   --stack  기술 스택 프리셋          nextjs-fastapi-pg | spring-vue-mssql | ...
   --mode   작업 모드 (default: solo) solo | team
 

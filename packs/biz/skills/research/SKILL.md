@@ -1,7 +1,7 @@
 ---
 name: ace-research
 description: "TAM/SAM/SOM 시장분석, 경쟁자 비교, 타겟 페르소나, SWOT를 포함한 research.md를 작성합니다. 사용자가 '리서치', '시장조사', '경쟁분석'을 언급할 때 사용하세요."
-argument-hint: "[이슈번호]"
+argument-hint: "[이슈번호 또는 생략]"
 user-invocable: true
 allowed-tools:
   - Read
@@ -22,7 +22,10 @@ allowed-tools:
 
 ```
 /ace-research [이슈번호]
+/ace-research
 ```
+
+이슈번호를 생략하면 `workspace/current/research.md`를 사용한다.
 
 ## 목적
 사업 아이디어의 시장 환경, 경쟁 구도, 타겟 고객을 조사하여 구조화된 리서치 보고서를 작성한다.
@@ -42,7 +45,7 @@ allowed-tools:
 **이 스킬은 중간 저장을 지원한다. 반드시 아래 순서를 따른다.**
 
 ### 실행 전 체크
-1. `workspace/tasks/{번호}/research.md` 파일이 이미 존재하는지 확인한다.
+1. 이슈번호가 있으면 `workspace/tasks/{번호}/research.md`, 없으면 `workspace/current/research.md` 파일이 이미 존재하는지 확인한다.
 2. 존재하면 frontmatter의 `status`를 읽는다.
    - `status: done` → "이미 완료된 리서치입니다. 재분석하시겠습니까?" 확인
    - `status: in_progress` → **이어하기 모드** 진입
@@ -58,6 +61,13 @@ allowed-tools:
 1. research.md를 **즉시 저장**한다 (Edit 도구 사용).
 2. 아직 미완료 섹션이 있으면 `status: in_progress` 유지.
 3. 모든 섹션 완료 후 `status: done`으로 변경.
+
+## 번호 없는 실행 모드
+
+- 이슈번호가 없으면 `workspace/current/` 디렉토리를 생성해서 사용한다.
+- 산출물은 `workspace/current/research.md`에 저장한다.
+- 보조 메모가 필요하면 `workspace/current/brief.md` 또는 사용자 제공 문서를 우선 읽는다.
+- 이 경우 `taskDetail.json` 갱신은 생략한다.
 
 ## 에이전트 사용 규칙
 
@@ -162,7 +172,7 @@ allowed-tools:
 ### Step 3: 상태 갱신
 
 - research.md frontmatter: `status: done`
-- taskDetail.json: `steps.research.status: completed`
+- 이슈번호가 있을 때만 taskDetail.json의 `steps.research.status: completed` 갱신
 
 ## 도구 사용
 

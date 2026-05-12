@@ -1,16 +1,18 @@
 {
   "name": "ace-engine",
   "version": "1.0.0",
-  "description": "ACE — Agent-powered Code Engine. Claude Code 기반 태스크 파이프라인 프레임워크.",
+  "description": "ACE — Agent-powered Code Engine. Agent-portable task and skill orchestration harness.",
   "main": "ace",
   "bin": {
     "ace": "./ace"
   },
   "scripts": {
-    "test": "node ace --help"
+    "test": "node ace --help && node ace validate-skills"
   },
   "keywords": [
+    "codex",
     "claude-code",
+    "agent-skills",
     "ai",
     "pipeline",
     "framework",

@@ -185,3 +185,5 @@ taskIndex.json을 읽어 전체 태스크를 테이블로 출력한다.
 - team 모드: 이슈 트래커 연동 필수 (create 또는 기존 이슈 start)
 - GitHub Issue 생성 시 `gh` CLI 사용 (사전 설치+인증 필요)
 - 이슈 생성 전 반드시 사용자에게 제목/설명 확인
+- 생성/갱신하는 산출물은 `status: pending`, `status: in_progress`, `status: completed`, `status: skipped` 중 하나의 상태 값을 사용한다.
+- 이슈번호 없이 진행하는 Codex 전역 스킬 흐름은 `workspace/current/`를 사용하고, 장기 추적이 필요할 때만 이 스킬로 태스크화한다.

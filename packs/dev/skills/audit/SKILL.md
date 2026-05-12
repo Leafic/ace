@@ -33,7 +33,7 @@ allowed-tools:
 ## ⚡ 이어하기 규칙 (필수)
 
 ### 실행 전 체크
-1. `workspace/audit.md` 파일이 이미 존재하는지 확인한다.
+1. `workspace/current/audit.md` 파일이 이미 존재하는지 확인한다. 기존 호환을 위해 `workspace/audit.md`가 있으면 함께 확인한다.
 2. 존재하면 frontmatter의 `status`를 읽는다.
    - `status: done` → "이미 완료된 진단입니다. 재진단하시겠습니까?" 확인
    - `status: in_progress` → **이어하기 모드** 진입
@@ -50,7 +50,7 @@ allowed-tools:
 
 ### 에이전트 호출 조건
 - **메인 세션이 직접 수행** (기본): 대부분의 감사 작업
-- **에이전트 위임**: 분석 대상 파일이 30개 이상인 대규모 코드베이스 감사만
+- **에이전트 위임**: 현재 실행 환경에서 명시적으로 허용되고, 분석 대상 파일이 30개 이상인 대규모 코드베이스 감사만
 - **병렬 에이전트 금지**: 같은 산출물을 여러 에이전트가 동시에 쓰지 않는다
 - **큰 파일 주의**: 필요한 부분만 offset/limit로 읽어서 요약 후 전달
 
@@ -155,7 +155,7 @@ allowed-tools:
 
 ## 출력 파일
 
-`workspace/audit.md` — frontmatter:
+`workspace/current/audit.md` — frontmatter:
 
 ```yaml
 ---

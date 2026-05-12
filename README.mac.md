@@ -64,7 +64,7 @@ cd ~/project/my-app
 ace init --pack dev --stack nextjs-fastapi-pg --mode solo
 ```
 
-그러면 현재 프로젝트 안에 `.ace`, `.claude`, `workspace/tasks`가 생기고, 그 프로젝트는 ACE 작업 대상이 됩니다.
+그러면 현재 프로젝트 안에 `.ace`, `.claude`, `workspace/current`, `workspace/tasks`가 생기고, 그 프로젝트는 ACE 작업 대상이 됩니다.
 
 ## 4. 프로젝트에 바로 연결
 
@@ -72,6 +72,7 @@ ace init --pack dev --stack nextjs-fastapi-pg --mode solo
 mkdir -p ~/project/ace-demo
 cd ~/project/ace-demo
 ace init --pack dev --stack nextjs-fastapi-pg --mode solo
+ace doctor
 ```
 
 생성 확인:
@@ -85,22 +86,23 @@ find .ace .claude workspace -maxdepth 2 -type d
 아래 한 번이면 초기화와 확인까지 됩니다.
 
 ```bash
-mkdir -p ~/project/ace-smoke && cd ~/project/ace-smoke && ace init --pack dev --stack nextjs-fastapi-pg --mode solo && ace
+mkdir -p ~/project/ace-smoke && cd ~/project/ace-smoke && ace init --pack all --stack nextjs-fastapi-pg --mode solo && ace doctor
 ```
 
 정상이라면:
 
 - `.ace/`
 - `.claude/`
+- `workspace/current/`
 - `workspace/tasks/`
-- CLI 도움말 출력
+- `ace doctor` 점검 결과
 
 이 보입니다.
 
 원격 설치부터 테스트까지 한 번에 돌리고 싶으면:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Leafic/ace/main/install.sh | bash && source ~/.zshrc && mkdir -p ~/project/ace-smoke && cd ~/project/ace-smoke && ace init --pack dev --stack nextjs-fastapi-pg --mode solo && ace
+curl -fsSL https://raw.githubusercontent.com/Leafic/ace/main/install.sh | bash && source ~/.zshrc && mkdir -p ~/project/ace-smoke && cd ~/project/ace-smoke && ace init --pack all --stack nextjs-fastapi-pg --mode solo && ace doctor
 ```
 
 ## 6. Codex에서 사용하려면
@@ -108,18 +110,26 @@ curl -fsSL https://raw.githubusercontent.com/Leafic/ace/main/install.sh | bash &
 Codex 앱/CLI에 스킬을 내보내려면:
 
 ```bash
-ace export-codex --pack dev --dest ~/.codex/skills
+ace export-codex --pack all --global
 ```
 
 그 다음 Codex를 재시작하세요.
+
+프로젝트 로컬에만 번들을 만들고 싶다면 아래처럼 실행합니다.
+
+```bash
+ace export-codex --pack all --local
+```
 
 ## 7. 자주 쓰는 명령
 
 ```bash
 ace start
 ace init --pack dev --stack nextjs-fastapi-pg --mode solo
+ace init --pack all --stack nextjs-fastapi-pg --mode solo
 ace add-pack biz
-ace export-codex --pack dev --dest ~/.codex/skills
+ace export-codex --pack all --global
+ace doctor
 ace update
 ```
 

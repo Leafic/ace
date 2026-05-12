@@ -1,6 +1,7 @@
 # ACE
 
-ACE는 프로젝트에 작업 컨텍스트를 연결하고, 분석 → 설계 → 구현 → 검증 흐름을 바로 시작할 수 있게 해주는 CLI입니다.
+ACE는 프로젝트에 작업 컨텍스트와 반복 가능한 AI 스킬을 연결하는 하네스입니다.
+핵심은 특정 에이전트에 묶인 프롬프트가 아니라, `analysis.md`, `design.md`, `research.md` 같은 산출물 흐름을 Claude Code, Codex 등 여러 실행 환경에서 재사용할 수 있게 만드는 것입니다.
 
 ## 설치
 
@@ -19,7 +20,8 @@ ACE는 이렇게 씁니다.
 1. ACE를 한 번 전역 설치합니다.
 2. 작업할 프로젝트 폴더로 이동합니다.
 3. `ace init`으로 그 프로젝트에 ACE 구성을 심습니다.
-4. 그 뒤 태스크를 만들고 `analyze → design → dev → test` 순서로 진행합니다.
+4. 필요하면 `ace export-codex --global`로 Codex 전역 스킬에 동기화합니다.
+5. 그 뒤 `analyze → design → dev → test` 또는 `research → model → plan → judge` 흐름을 사용합니다.
 
 가장 짧은 예시는 아래입니다.
 
@@ -27,7 +29,7 @@ ACE는 이렇게 씁니다.
 mkdir -p ~/project/ace-demo
 cd ~/project/ace-demo
 ace init --pack dev --stack nextjs-fastapi-pg --mode solo
-ace
+ace doctor
 ```
 
 ## 핵심 명령
@@ -35,9 +37,18 @@ ace
 ```bash
 ace start
 ace init --pack dev --stack nextjs-fastapi-pg --mode solo
+ace init --pack all --stack nextjs-fastapi-pg --mode solo
 ace add-pack biz
-ace export-codex --pack dev --dest ~/.codex/skills
+ace export-codex --pack all --global
+ace doctor
+ace validate-skills
 ace update
+```
+
+배포 전 특정 회사/프로젝트 컨텍스트가 스킬에 남았는지 확인하려면:
+
+```bash
+ACE_FORBIDDEN_TERMS="내부프로젝트명,회사명" ace validate-skills
 ```
 
 ## 프로젝트에 무엇이 생기나
@@ -49,24 +60,27 @@ ace update
 - `.claude/skills/`
 - `.claude/agents/`
 - `.claude/rules/`
+- `workspace/current/`
 - `workspace/tasks/`
 
-즉, ACE 코어는 전역에 두고, 프로젝트별 컨텍스트와 산출물만 로컬에 둡니다.
+즉, ACE 코어와 Codex 스킬은 전역에 둘 수 있고, 프로젝트별 컨텍스트와 산출물만 로컬에 둡니다.
 
 ## Codex 사용
 
 Codex 앱/CLI에서 ACE 스킬을 쓰려면:
 
 ```bash
-ace export-codex --pack dev --dest ~/.codex/skills
+ace export-codex --pack all --global
 ```
 
-그 다음 Codex를 재시작하면 `$ace-analyze`, `$ace-dev` 같은 스킬을 사용할 수 있습니다.
+그 다음 Codex를 재시작하면 `$ace-analyze`, `$ace-dev`, `$ace-research`, `$ace-coach` 같은 스킬을 사용할 수 있습니다.
+
+`~/.codex`가 이미 있으면 `ace export-codex`만 실행해도 기본적으로 전역 `~/.codex/skills`에 내보냅니다. 프로젝트 로컬에만 만들고 싶으면 `--local`을 사용하세요.
 
 ## 지원 구성
 
 - 모드: `solo`, `team`
-- 팩: `dev`, `biz`
+- 팩: `dev`, `biz`, `all`
 - 예시 스택:
   - `nextjs-fastapi-pg`
   - `spring-vue-mssql`

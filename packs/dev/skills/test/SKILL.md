@@ -20,15 +20,23 @@ allowed-tools:
 
 ```
 /ace-test [이슈번호]
+/ace-test
 ```
 
 ## 선행 조건
 - 없음 (개발 완료 전에도 테스트 계획 수립 가능)
 
+## 번호 없는 실행 모드
+
+- 이슈번호가 없으면 `workspace/current/` 디렉토리를 생성해서 사용한다.
+- 산출물은 `workspace/current/test.md`에 저장한다.
+- 선행 자료는 `workspace/current/analysis.md`, `workspace/current/design.md`, `workspace/current/development.md` 중 존재하는 것을 읽는다.
+- 이 경우 `taskDetail.json` 갱신은 생략한다.
+
 ## ⚡ 이어하기 규칙 (필수)
 
 ### 실행 전 체크
-1. `workspace/tasks/{번호}/test.md` 파일이 이미 존재하는지 확인한다.
+1. 이슈번호가 있으면 `workspace/tasks/{번호}/test.md`, 없으면 `workspace/current/test.md` 파일이 이미 존재하는지 확인한다.
 2. 존재하면 frontmatter의 `status`를 읽는다.
    - `status: done` → "이미 완료된 테스트입니다. 재실행하시겠습니까?" 확인
    - `status: in_progress` → **이어하기 모드** 진입
@@ -48,7 +56,7 @@ allowed-tools:
 - **에이전트 위임**: 전체 모듈 통합 테스트가 필요한 대규모 작업만
 - **병렬 에이전트 금지**: 같은 산출물을 여러 에이전트가 동시에 쓰지 않는다
 - **큰 파일 주의**: 필요한 부분만 offset/limit로 읽어서 요약 후 전달
-- `reviewer` 서브에이전트도 동일 규칙 적용
+- `reviewer` 서브에이전트는 현재 실행 환경에서 명시적으로 허용될 때만 사용한다. 사용할 수 없으면 메인 세션이 직접 설계 대비 리뷰를 수행한다.
 
 ### 폴백
 1. 에이전트가 타임아웃/에러/불완전한 결과를 반환하면 메인 세션이 직접 수행한다.
@@ -81,7 +89,7 @@ allowed-tools:
 → 완료 시 test.md 저장
 
 **섹션 4. 설계 대비 리뷰**
-- reviewer 에이전트 호출 (설계 vs 구현 정합성)
+- reviewer 에이전트가 가능하면 호출하고, 불가능하면 메인 세션이 직접 설계 vs 구현 정합성을 리뷰
 → 완료 시 test.md 저장
 
 **섹션 5. 잔존 리스크**
@@ -91,7 +99,7 @@ allowed-tools:
 ### Step 3: 상태 갱신
 
 - test.md frontmatter: `status: done`
-- taskDetail.json: `steps.test.status: completed`
+- 이슈번호가 있을 때만 taskDetail.json의 `steps.test.status: completed` 갱신
 
 ## 완료 시 출력
 

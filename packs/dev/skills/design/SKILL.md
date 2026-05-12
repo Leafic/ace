@@ -20,16 +20,25 @@ allowed-tools:
 
 ```
 /ace-design [이슈번호]
+/ace-design
 ```
 
 ## 선행 조건
 - solo 모드: analysis 완료 또는 스킵 가능
 - team 모드: analysis 완료 필수
+- 이슈번호가 없으면 `workspace/current/analysis.md`를 우선 사용한다.
+
+## 번호 없는 실행 모드
+
+- 이슈번호가 없으면 `workspace/current/` 디렉토리를 생성해서 사용한다.
+- 산출물은 `workspace/current/design.md`에 저장한다.
+- 선행 자료는 `workspace/current/analysis.md`, `workspace/current/brief.md`를 우선 읽는다.
+- 이 경우 `taskDetail.json` 갱신은 생략한다.
 
 ## ⚡ 이어하기 규칙 (필수)
 
 ### 실행 전 체크
-1. `workspace/tasks/{번호}/design.md` 파일이 이미 존재하는지 확인한다.
+1. 이슈번호가 있으면 `workspace/tasks/{번호}/design.md`, 없으면 `workspace/current/design.md` 파일이 이미 존재하는지 확인한다.
 2. 존재하면 frontmatter의 `status`를 읽는다.
    - `status: done` → "이미 완료된 설계입니다. 재설계하시겠습니까?" 확인
    - `status: in_progress` → **이어하기 모드** 진입
@@ -61,7 +70,7 @@ allowed-tools:
 ### Step 1: 컨텍스트 로딩
 
 1. analysis.md 읽기 (있으면)
-2. 스택 컨벤션 로딩 (.claude/rules/conv-*.md)
+2. 스택 컨벤션 로딩 (`.claude/rules/conv-*.md`, 없으면 저장소 README/설정 파일 기준)
 3. 기존 코드베이스 구조 파악
 
 **이어하기 시**: 기존 design.md의 완료 섹션 파악 후 스킵.
@@ -91,7 +100,7 @@ allowed-tools:
 ### Step 3: 상태 갱신
 
 - design.md frontmatter: `status: done`
-- taskDetail.json: `steps.design.status: completed`
+- 이슈번호가 있을 때만 taskDetail.json의 `steps.design.status: completed` 갱신
 
 ## 완료 시 출력
 

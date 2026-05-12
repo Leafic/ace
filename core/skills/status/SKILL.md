@@ -17,6 +17,7 @@ allowed-tools:
 
 ## 목적
 현재 프로젝트의 dev/biz 파이프라인 진행 상태를 한눈에 보여주고, 다음에 실행할 명령어를 안내한다.
+태스크 번호 기반(`workspace/tasks/{번호}`)과 번호 없는 현재 작업(`workspace/current`)을 모두 지원한다.
 
 ## 실행 흐름
 
@@ -26,16 +27,18 @@ allowed-tools:
 
 ### Step 2: 태스크 현황 수집
 
-`workspace/tasks/taskIndex.json`을 읽는다.
-태스크가 없으면:
+`workspace/tasks/taskIndex.json`을 읽고, 동시에 `workspace/current/`의 산출물도 확인한다.
+태스크가 없고 `workspace/current/` 산출물도 없으면:
 ```
 아직 태스크가 없습니다.
 → /ace-task start <이슈번호>  태스크 생성
+→ 또는 번호 없이 $ace-analyze / $ace-research 로 workspace/current 작업 시작
 ```
 
 ### Step 3: 산출물 상태 확인
 
 각 태스크 폴더에서 산출물 파일의 존재 여부와 frontmatter `status`를 확인한다.
+번호 없는 작업은 `workspace/current/`에서 같은 파일명을 확인한다.
 
 **dev 파이프라인 체크:**
 - `analysis.md` → analyze 단계
@@ -70,6 +73,11 @@ allowed-tools:
 [다음 액션]
 → /ace-{다음스킬}  {설명}
 ```
+
+## 완료 시 출력
+
+상태 조회 결과만 출력하고 파일은 수정하지 않는다. Claude Code에서는 `/ace-*`, Codex에서는 `$ace-*` 표기로 같은 스킬을 호출할 수 있음을 함께 안내한다.
+태스크 작업과 current 작업이 모두 있으면 최근 수정 시간이 더 최신인 쪽을 기본 다음 액션으로 제안한다.
 
 ### Step 5: 다음 액션 결정
 
