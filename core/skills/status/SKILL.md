@@ -45,6 +45,7 @@ allowed-tools:
 - `design.md` → design 단계
 - `development.md` → dev 단계
 - `test.md` → test 단계
+- `workspace/wiki/work-log.md` → wiki 기록
 
 **biz 파이프라인 체크:**
 - `research.md` → research 단계
@@ -90,6 +91,7 @@ allowed-tools:
 | analyze ✓, design ○ | `/ace-design` | 설계 시작 |
 | design ✓, dev ○ | `/ace-dev` | 구현 시작 |
 | dev ✓, test ○ | `/ace-test` | 테스트 시작 |
+| test ✓, wiki 미갱신 | `/ace-wiki` | 작업 이력/결정 기록 |
 | test ✓ | 완료! 커밋/PR 진행 | - |
 | 어딘가 ◆ | 해당 스킬 재실행 (이어하기) | 중단된 곳에서 이어서 |
 

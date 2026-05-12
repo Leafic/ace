@@ -14,9 +14,9 @@
 
 | 대상 | 규칙 | 예시 |
 |------|------|------|
-| 모듈/파일 | snake_case | `client_router.py`, `session_service.py` |
-| 클래스 | PascalCase | `ClientService`, `SessionSchema` |
-| 함수/변수 | snake_case | `get_client_list`, `session_count` |
+| 모듈/파일 | snake_case | `user_router.py`, `task_service.py` |
+| 클래스 | PascalCase | `UserService`, `TaskSchema` |
+| 함수/변수 | snake_case | `get_user_list`, `task_count` |
 | 상수 | UPPER_SNAKE | `MAX_PAGE_SIZE`, `DEFAULT_SORT` |
 | 환경변수 | UPPER_SNAKE | `DATABASE_URL`, `JWT_SECRET` |
 
@@ -25,9 +25,9 @@
 ```
 backend/app/
 ├── api/                 # 라우터 (도메인별 파일)
-│   ├── clients.py
-│   ├── dogs.py
-│   ├── sessions.py
+│   ├── users.py
+│   ├── projects.py
+│   ├── tasks.py
 │   └── deps.py          # 공통 의존성 (get_db, get_current_user)
 ├── models/              # SQLAlchemy ORM 모델
 ├── schemas/             # Pydantic v2 스키마 (Request/Response 분리)
@@ -45,25 +45,25 @@ backend/app/
 |--------|------|
 | Router | 비즈니스 로직 금지, Service 위임만 수행 |
 | Router | `APIRouter` + 태그/prefix 설정, Depends로 의존성 주입 |
-| Router | 응답 모델 명시: `response_model=ClientResponse` |
+| Router | 응답 모델 명시: `response_model=UserResponse` |
 | Service | 비즈니스 로직 집중, DB 세션은 파라미터로 주입 |
 | Service | 단일 책임 — 도메인별 서비스 클래스 분리 |
 | Model | SQLAlchemy 모델, 테이블 매핑, 관계 정의 |
-| Schema | Pydantic v2 — `ClientCreate`(입력), `ClientResponse`(출력) 분리 |
+| Schema | Pydantic v2 — `UserCreate`(입력), `UserResponse`(출력) 분리 |
 
 ## API 패턴
 
 ```python
 # Router 예시
-@router.get("", response_model=PaginatedResponse[ClientResponse])
-async def list_clients(
+@router.get("", response_model=PaginatedResponse[UserResponse])
+async def list_users(
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
     q: str | None = None,
     db: AsyncSession = Depends(get_db),
-    current_user: Trainer = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    return await client_service.list_clients(db, current_user.id, page, size, q)
+    return await user_service.list_users(db, current_user.id, page, size, q)
 ```
 
 ## 응답/예외
@@ -79,17 +79,17 @@ async def list_clients(
 
 ```python
 # Model 예시
-class Client(Base):
-    __tablename__ = "clients"
+class User(Base):
+    __tablename__ = "users"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    trainer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("trainers.id"))
+    owner_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("accounts.id"))
     name: Mapped[str] = mapped_column(String(50))
-    phone: Mapped[str | None] = mapped_column(String(20))
+    email: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
-    dogs: Mapped[list["Dog"]] = relationship(back_populates="client")
+    tasks: Mapped[list["Task"]] = relationship(back_populates="owner")
 ```
 
 ## 기타

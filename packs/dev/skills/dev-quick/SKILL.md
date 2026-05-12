@@ -71,6 +71,7 @@ full dev와 동일한 검증이지만 설계 대비 체크는 생략한다.
 
 - development.md frontmatter: `status: done`
 - 이슈번호가 있을 때만 taskDetail.json의 `steps.development.status: completed` 갱신
+- 작업 목적, 주요 결정, 검증, 후속 과제를 `/ace-wiki`로 `workspace/wiki`에 기록
 
 ## 규칙
 
@@ -90,5 +91,6 @@ full dev와 동일한 검증이지만 설계 대비 체크는 생략한다.
 
 [다음 명령]
 → /ace-test    필요 시 테스트 계획/실행
+→ /ace-wiki    작업 이력/결정 내부 위키 갱신
 → /ace-status  전체 파이프라인 현황 확인
 ```

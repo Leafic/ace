@@ -62,6 +62,7 @@ ACE_FORBIDDEN_TERMS="내부프로젝트명,회사명" ace validate-skills
 - `.claude/rules/`
 - `workspace/current/`
 - `workspace/tasks/`
+- `workspace/wiki/`
 
 즉, ACE 코어와 Codex 스킬은 전역에 둘 수 있고, 프로젝트별 컨텍스트와 산출물만 로컬에 둡니다.
 
@@ -75,6 +76,7 @@ ace export-codex --pack all --global
 
 그 다음 Codex를 재시작하면 `$ace-analyze`, `$ace-dev`, `$ace-research`, `$ace-coach` 같은 스킬을 사용할 수 있습니다.
 하네스 자체를 점검하려면 `$ace-karpathy-harness`로 context map, execution harness, verification gates를 설계할 수 있습니다.
+작업 이력과 내부 지식은 `$ace-wiki`로 `workspace/wiki`에 누적합니다.
 
 `~/.codex`가 이미 있으면 `ace export-codex`만 실행해도 기본적으로 전역 `~/.codex/skills`에 내보냅니다. 프로젝트 로컬에만 만들고 싶으면 `--local`을 사용하세요.
 

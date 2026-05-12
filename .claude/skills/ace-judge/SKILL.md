@@ -1,7 +1,7 @@
 ---
 name: ace-judge
 description: "시장기회/실행가능성/수익성/차별성 가중 평가, 가정 검증, 시나리오 분석으로 Go/No-Go/Pivot 판단을 내립니다. 사용자가 '판단', '의사결정', 'Go/No-Go'를 언급할 때 사용하세요."
-argument-hint: "[이슈번호]"
+argument-hint: "[이슈번호 또는 생략]"
 user-invocable: true
 allowed-tools:
   - Read
@@ -22,15 +22,24 @@ allowed-tools:
 
 ```
 /ace-judge [이슈번호]
+/ace-judge
 ```
+
+이슈번호를 생략하면 `workspace/current/judgement.md`를 사용한다.
 
 ## 목적
 리서치, 모델링, 실행 계획을 종합하여 최종 의사결정을 지원한다.
 
+## ⚠ 판단 원칙
+- **확증 편향 경계**: 앞 단계 산출물이 긍정적이어도 의심한다. "research가 Go라고 했으니 Go"가 아님
+- **No-Go도 가치 있는 결론이다** — Go를 기본값으로 두지 않는다
+- **미검증 가정이 3개 이상이면** 판정을 보류하고 검증 방법을 제안한다
+- 점수 기준: 7점 이상이어야 Go. 5-6점은 Pivot 검토. 5점 미만은 No-Go
+
 ## ⚡ 이어하기 규칙 (필수)
 
 ### 실행 전 체크
-1. `workspace/tasks/{번호}/judgement.md` 파일이 이미 존재하는지 확인한다.
+1. 이슈번호가 있으면 `workspace/tasks/{번호}/judgement.md`, 없으면 `workspace/current/judgement.md` 파일이 이미 존재하는지 확인한다.
 2. 존재하면 frontmatter의 `status`를 읽는다.
    - `status: done` → "이미 완료된 판단입니다. 재평가하시겠습니까?" 확인
    - `status: in_progress` → **이어하기 모드** 진입
@@ -42,6 +51,13 @@ allowed-tools:
 
 ### 섹션별 저장
 각 섹션 완료 시마다 judgement.md를 **즉시 저장**한다.
+
+## 번호 없는 실행 모드
+
+- 이슈번호가 없으면 `workspace/current/` 디렉토리를 생성해서 사용한다.
+- 산출물은 `workspace/current/judgement.md`에 저장한다.
+- 선행 자료는 `workspace/current/research.md`, `workspace/current/model.md`, `workspace/current/plan.md`를 우선 읽는다.
+- 이 경우 `taskDetail.json` 갱신은 생략한다.
 
 ## 에이전트 사용 규칙
 
@@ -93,7 +109,7 @@ research.md, model.md, plan.md를 모두 읽는다 (있는 것만).
 ### Step 3: 상태 갱신
 
 - judgement.md frontmatter: `status: done`, `verdict: Go/No-Go/Pivot`, `score: X.X`
-- taskDetail.json: `steps.judge.status: completed`
+- 이슈번호가 있을 때만 taskDetail.json의 `steps.judge.status: completed` 갱신
 
 ## 완료 시 출력
 

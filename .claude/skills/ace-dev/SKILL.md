@@ -20,16 +20,41 @@ allowed-tools:
 
 ```
 /ace-dev [이슈번호]
+/ace-dev
 ```
 
 ## 선행 조건
 - solo 모드: design 완료 또는 스킵 가능
 - team 모드: design 완료 필수
+- 이슈번호가 없으면 `workspace/current/design.md`를 우선 사용한다.
+
+## 기획 정의 확인
+
+개발은 기획 정의가 확인된 뒤에만 시작한다.
+요구사항을 유추해서 구현하지 않는다.
+
+구현 전 아래 항목을 확인한다:
+- 목표와 비목표
+- 포함/제외 범위
+- 사용자 흐름
+- 데이터/API 계약
+- 예외/권한/빈 상태/중복 처리
+- acceptance criteria
+
+하나라도 불명확하면 코드를 수정하지 말고 먼저 사용자에게 질문한다.
+단, 사용자가 명시적으로 "가정하고 진행"을 승인한 경우에만 development.md에 가정을 기록하고 진행한다.
+
+## 번호 없는 실행 모드
+
+- 이슈번호가 없으면 `workspace/current/` 디렉토리를 생성해서 사용한다.
+- 산출물은 `workspace/current/development.md`에 저장한다.
+- 선행 자료는 `workspace/current/design.md`, 없으면 `workspace/current/analysis.md`를 읽는다.
+- 이 경우 `taskDetail.json` 갱신은 생략한다.
 
 ## ⚡ 이어하기 규칙 (필수)
 
 ### 실행 전 체크
-1. `workspace/tasks/{번호}/development.md` 파일이 이미 존재하는지 확인한다.
+1. 이슈번호가 있으면 `workspace/tasks/{번호}/development.md`, 없으면 `workspace/current/development.md` 파일이 이미 존재하는지 확인한다.
 2. 존재하면 frontmatter의 `status`를 읽는다.
    - `status: done` → "이미 완료된 구현입니다. 추가 작업하시겠습니까?" 확인
    - `status: in_progress` → **이어하기 모드** 진입
@@ -47,7 +72,7 @@ allowed-tools:
 
 ### 에이전트 호출 조건
 - **메인 세션이 직접 수행** (기본): 파일 5개 이하 수정, 단일 기능 구현
-- **gate 에이전트 위임**: 수정 파일이 10개 이상이고 전체 코드 검증이 필요한 경우만
+- **gate/보조 에이전트 위임**: 현재 실행 환경에서 명시적으로 허용되고, 수정 파일이 10개 이상이며 전체 코드 검증이 필요한 경우만
 - **병렬 에이전트 금지**: 같은 파일을 여러 에이전트가 동시에 수정하지 않는다
 - **큰 파일 주의**: 필요한 부분만 offset/limit로 읽어서 요약 후 전달
 
@@ -80,14 +105,15 @@ design.md 기반으로 코드를 구현한다.
 ### Step 3: 자동 검증
 
 구현 완료 후:
-1. `gate` 에이전트 호출 (읽기 전용)
+1. 가능하면 `gate` 에이전트 호출 (읽기 전용). 사용할 수 없으면 메인 세션이 직접 리뷰한다.
 2. findings 분류: auto-fixable → 즉시 수정 / needs-decision → 사용자에게 보고
 3. 자동 수정 루프 (최대 2회)
 
 ### Step 4: 상태 갱신
 
 - development.md frontmatter: `status: done`
-- taskDetail.json: `steps.development.status: completed`
+- 이슈번호가 있을 때만 taskDetail.json의 `steps.development.status: completed` 갱신
+- 작업 목적, 주요 결정, 검증, 후속 과제를 `/ace-wiki`로 `workspace/wiki`에 기록
 
 ## 완료 시 출력
 
@@ -105,5 +131,6 @@ design.md 기반으로 코드를 구현한다.
 
 [다음 명령]
 → /ace-test    테스트 계획 수립/실행
+→ /ace-wiki    작업 이력/결정 내부 위키 갱신
 → /ace-status  전체 파이프라인 현황 확인
 ```

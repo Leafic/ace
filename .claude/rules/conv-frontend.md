@@ -14,13 +14,13 @@
 
 | 대상 | 규칙 | 예시 |
 |------|------|------|
-| 파일 (페이지) | kebab-case | `client-list/page.tsx` |
-| 파일 (컴포넌트) | kebab-case | `session-card.tsx` |
-| 파일 (서비스/훅) | kebab-case | `use-clients.ts`, `client-api.ts` |
-| 컴포넌트 | PascalCase | `ClientList`, `SessionCard` |
-| 변수/함수 | camelCase | `clientData`, `fetchSessions` |
+| 파일 (페이지) | kebab-case | `user-list/page.tsx` |
+| 파일 (컴포넌트) | kebab-case | `task-card.tsx` |
+| 파일 (서비스/훅) | kebab-case | `use-users.ts`, `user-api.ts` |
+| 컴포넌트 | PascalCase | `UserList`, `TaskCard` |
+| 변수/함수 | camelCase | `userData`, `fetchTasks` |
 | 상수 | UPPER_SNAKE | `MAX_PAGE_SIZE` |
-| 타입/인터페이스 | PascalCase | `Client`, `SessionFormData` |
+| 타입/인터페이스 | PascalCase | `User`, `TaskFormData` |
 
 ## 디렉토리 구조 (App Router)
 
@@ -28,8 +28,8 @@
 src/
 ├── app/                     # 라우트 (App Router)
 │   ├── (auth)/              # 인증 필요 라우트 그룹
-│   │   ├── clients/
-│   │   ├── sessions/
+│   │   ├── users/
+│   │   ├── tasks/
 │   │   └── layout.tsx
 │   ├── p/[uuid]/            # Magic Link 공개 라우트
 │   └── layout.tsx
@@ -49,7 +49,7 @@ src/
 
 ```tsx
 // 함수형 컴포넌트 + arrow function
-const ClientCard = ({ client, onEdit }: ClientCardProps) => {
+const UserCard = ({ user, onEdit }: UserCardProps) => {
   // hooks
   // state
   // handlers
@@ -57,7 +57,7 @@ const ClientCard = ({ client, onEdit }: ClientCardProps) => {
   return (...)
 }
 
-export default ClientCard
+export default UserCard
 ```
 
 **필수 규칙:**
@@ -76,24 +76,24 @@ export default ClientCard
 ## API 호출 패턴
 
 ```typescript
-// src/lib/api/clients.ts
-export const clientApi = {
-  list: (params: ClientListParams) =>
-    api.get<PaginatedResponse<Client>>('/api/v1/clients', { params }),
+// src/lib/api/users.ts
+export const userApi = {
+  list: (params: UserListParams) =>
+    api.get<PaginatedResponse<User>>('/api/v1/users', { params }),
 
   getById: (id: string) =>
-    api.get<DataResponse<Client>>(`/api/v1/clients/${id}`),
+    api.get<DataResponse<User>>(`/api/v1/users/${id}`),
 
-  create: (data: ClientCreate) =>
-    api.post<DataResponse<Client>>('/api/v1/clients', data),
+  create: (data: UserCreate) =>
+    api.post<DataResponse<User>>('/api/v1/users', data),
 }
 ```
 
 ```typescript
 // 컴포넌트에서 React Query 사용
 const { data, isLoading } = useQuery({
-  queryKey: ['clients', params],
-  queryFn: () => clientApi.list(params),
+  queryKey: ['users', params],
+  queryFn: () => userApi.list(params),
 })
 ```
 

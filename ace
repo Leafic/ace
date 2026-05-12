@@ -71,11 +71,12 @@ function init() {
   mkdirSafe(path.join(CWD, 'workspace'))
   mkdirSafe(path.join(CWD, 'workspace', 'current'))
   mkdirSafe(path.join(CWD, 'workspace', 'tasks'))
+  setupWiki()
   const taskIndexPath = path.join(CWD, 'workspace', 'tasks', 'taskIndex.json')
   if (!fs.existsSync(taskIndexPath)) {
     fs.writeFileSync(taskIndexPath, JSON.stringify({ tasks: [] }, null, 2), 'utf-8')
   }
-  console.log('   ✓ workspace/current, workspace/tasks created')
+  console.log('   ✓ workspace/current, workspace/tasks, workspace/wiki created')
 
   // 4. .claude/ 설정 생성
   setupClaude(packs, stack, mode)
@@ -310,6 +311,30 @@ function updateGitignore() {
 // ─────────────────────────────────────────────
 // 유틸리티
 // ─────────────────────────────────────────────
+
+function setupWiki() {
+  const wikiDir = path.join(CWD, 'workspace', 'wiki')
+  const tasksWikiDir = path.join(wikiDir, 'tasks')
+  mkdirSafe(wikiDir)
+  mkdirSafe(tasksWikiDir)
+
+  const templateMap = [
+    ['wiki.index.template.md', 'INDEX.md'],
+    ['wiki.work-log.template.md', 'work-log.md'],
+    ['wiki.decisions.template.md', 'decisions.md'],
+    ['wiki.harness.template.md', 'harness.md'],
+  ]
+  for (const [templateName, targetName] of templateMap) {
+    const target = path.join(wikiDir, targetName)
+    if (fs.existsSync(target)) continue
+    const src = path.join(ACE_ROOT, 'core', 'templates', templateName)
+    if (fs.existsSync(src)) {
+      fs.copyFileSync(src, target)
+    } else {
+      fs.writeFileSync(target, `# ${targetName}\n\n`, 'utf-8')
+    }
+  }
+}
 
 function mkdirSafe(dir) {
   if (!fs.existsSync(dir)) {
@@ -923,6 +948,7 @@ function update() {
 
     mkdirSafe(path.join(CWD, 'workspace', 'current'))
     mkdirSafe(path.join(CWD, 'workspace', 'tasks'))
+    setupWiki()
     updateProfilePacks(profilePath, installedPacks)
 
     console.log(`\n✅ 업데이트 완료 — Claude Code/Codex를 재시작하면 반영됩니다\n`)
@@ -946,6 +972,7 @@ function doctor() {
     ['profile', fs.existsSync(profilePath), '.ace/profile.yaml'],
     ['workspace-current', fs.existsSync(path.join(CWD, 'workspace', 'current')), 'workspace/current'],
     ['workspace-tasks', fs.existsSync(path.join(CWD, 'workspace', 'tasks', 'taskIndex.json')), 'workspace/tasks/taskIndex.json'],
+    ['workspace-wiki', fs.existsSync(path.join(CWD, 'workspace', 'wiki', 'INDEX.md')), 'workspace/wiki/INDEX.md'],
     ['claude-skills', fs.existsSync(path.join(CWD, '.claude', 'skills')), '.claude/skills'],
     ['codex-skills', fs.existsSync(codexSkillsDir), codexSkillsDir],
     ['codex-dev-pack', !installedPacks.includes('dev') || fs.existsSync(path.join(codexSkillsDir, 'ace-analyze')), 'ace-analyze'],

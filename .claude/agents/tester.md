@@ -24,13 +24,13 @@ Sonnet (테스트 코드 생성, 반복 검증)
 
 ```python
 # 단위 테스트 — 서비스 로직
-async def test_create_client_success(db_session):
-    result = await client_service.create_client(db_session, trainer_id, data)
+async def test_create_user_success(db_session):
+    result = await user_service.create_user(db_session, owner_id, data)
     assert result.name == data.name
 
 # API 테스트 — 엔드포인트
-async def test_list_clients_api(client: AsyncClient):
-    response = await client.get("/api/v1/clients")
+async def test_list_users_api(client: AsyncClient):
+    response = await client.get("/api/v1/users")
     assert response.status_code == 200
     assert "data" in response.json()
 ```
@@ -39,14 +39,14 @@ async def test_list_clients_api(client: AsyncClient):
 
 ```typescript
 // 컴포넌트 테스트
-test('ClientCard renders name', () => {
-  render(<ClientCard client={mockClient} />)
+test('UserCard renders name', () => {
+  render(<UserCard user={mockUser} />)
   expect(screen.getByText('홍길동')).toBeInTheDocument()
 })
 
 // 인터랙션 테스트
 test('submit button disabled when form invalid', async () => {
-  render(<ClientForm />)
+  render(<UserForm />)
   expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
 })
 ```

@@ -38,7 +38,7 @@ Sonnet (정형화된 체크리스트 기반 검증)
       "category": "security",
       "severity": "HIGH",
       "detail": "SQL injection risk: raw query without parameterization",
-      "file": "backend/app/services/client_service.py",
+      "file": "backend/app/services/user_service.py",
       "line": 42,
       "autoFixable": true,
       "suggestion": "Use SQLAlchemy parameterized query"

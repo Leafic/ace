@@ -1,7 +1,7 @@
 ---
 name: ace-model
 description: "BMC 9블록, 가격전략, 단위경제학(CAC/LTV), 비용구조를 포함한 model.md를 작성합니다. 사용자가 '비즈니스 모델', '수익 구조', '가격 전략'을 언급할 때 사용하세요."
-argument-hint: "[이슈번호]"
+argument-hint: "[이슈번호 또는 생략]"
 user-invocable: true
 allowed-tools:
   - Read
@@ -22,15 +22,24 @@ allowed-tools:
 
 ```
 /ace-model [이슈번호]
+/ace-model
 ```
+
+이슈번호를 생략하면 `workspace/current/model.md`를 사용한다.
 
 ## 목적
 리서치 결과를 바탕으로 비즈니스 모델을 설계하고 수익 구조를 정의한다.
 
+## ⚠ 분석 원칙
+- 수익 추정은 **보수적 시나리오를 기본값**으로 한다 (낙관적 추정은 별도 표시)
+- "사용자가 늘면 매출이 오른다" 같은 당연한 가정이 아닌, **전환율·이탈률·실제 결제율** 기반으로 추정
+- 비용은 숨겨진 비용(CS, 인프라 스케일링, 법률, 세금)을 반드시 포함
+- 단위 경제학(CAC/LTV)에서 CAC는 **현실적으로 높게**, LTV는 **보수적으로 낮게** 잡는다
+
 ## ⚡ 이어하기 규칙 (필수)
 
 ### 실행 전 체크
-1. `workspace/tasks/{번호}/model.md` 파일이 이미 존재하는지 확인한다.
+1. 이슈번호가 있으면 `workspace/tasks/{번호}/model.md`, 없으면 `workspace/current/model.md` 파일이 이미 존재하는지 확인한다.
 2. 존재하면 frontmatter의 `status`를 읽는다.
    - `status: done` → "이미 완료된 모델링입니다. 재작성하시겠습니까?" 확인
    - `status: in_progress` → **이어하기 모드** 진입
@@ -42,6 +51,13 @@ allowed-tools:
 
 ### 섹션별 저장
 각 섹션 완료 시마다 model.md를 **즉시 저장**한다.
+
+## 번호 없는 실행 모드
+
+- 이슈번호가 없으면 `workspace/current/` 디렉토리를 생성해서 사용한다.
+- 산출물은 `workspace/current/model.md`에 저장한다.
+- 선행 자료는 `workspace/current/research.md`를 우선 읽고, 없으면 사용자 입력으로 진행한다.
+- 이 경우 `taskDetail.json` 갱신은 생략한다.
 
 ## 에이전트 사용 규칙
 
@@ -96,7 +112,7 @@ allowed-tools:
 ### Step 3: 상태 갱신
 
 - model.md frontmatter: `status: done`
-- taskDetail.json: `steps.model.status: completed`
+- 이슈번호가 있을 때만 taskDetail.json의 `steps.model.status: completed` 갱신
 
 ## 완료 시 출력
 

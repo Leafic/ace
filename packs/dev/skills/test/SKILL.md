@@ -106,6 +106,7 @@ allowed-tools:
 
 - test.md frontmatter: `status: done`
 - 이슈번호가 있을 때만 taskDetail.json의 `steps.test.status: completed` 갱신
+- 테스트 완료 후 `/ace-wiki`로 검증 결과와 남은 리스크를 `workspace/wiki`에 기록
 
 ## 완료 시 출력
 
@@ -123,5 +124,6 @@ allowed-tools:
 
 [다음 명령]
 → 개발 파이프라인 완료! 커밋/PR 진행
+→ /ace-wiki    작업 이력/결정 내부 위키 갱신
 → /ace-status  전체 파이프라인 현황 확인
 ```
