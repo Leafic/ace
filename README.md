@@ -63,7 +63,7 @@ ACE는 크게 두 가지 팩으로 동작합니다.
 - `ace-wiki`: 작업 기록과 결정 사항을 내부 위키로 누적
 - `ace-retrospect`: 협업 패턴 회고
 - `ace-coach`: AI 활용 방식 코칭
-- `ace-karpathy-harness`: context map, execution harness, verification gates 설계
+- `ace-karpathy-harness`: 문맥 지도, 실행 하네스, 검증 관문 설계
 
 ## 설치
 
@@ -142,7 +142,7 @@ ace export-codex --pack all --global
 ```
 
 그 다음 Codex를 재시작하면 `$ace-analyze`, `$ace-dev`, `$ace-research`, `$ace-coach` 같은 스킬을 사용할 수 있습니다.
-하네스 자체를 점검하려면 `$ace-karpathy-harness`로 context map, execution harness, verification gates를 설계할 수 있습니다.
+하네스 자체를 점검하려면 `$ace-karpathy-harness`로 문맥 지도, 실행 하네스, 검증 관문을 설계할 수 있습니다.
 작업 이력과 내부 지식은 `$ace-wiki`로 `workspace/wiki`에 누적합니다.
 
 `~/.codex`가 이미 있으면 `ace export-codex`만 실행해도 기본적으로 전역 `~/.codex/skills`에 내보냅니다. 프로젝트 로컬에만 만들고 싶으면 `--local`을 사용하세요.

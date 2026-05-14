@@ -1,6 +1,6 @@
 ---
 name: ace-karpathy-harness
-description: "Andrej Karpathy의 Software 3.0, context engineering, agentic engineering 방향성을 바탕으로 에이전트 하네스 구조를 설계하여 harness.md를 작성합니다. 사용자가 '카파시', '하네스', 'agentic engineering', 'context engineering', 'vibe coding 이후', '에이전트 운영 구조'를 언급할 때 사용하세요."
+description: "Andrej Karpathy의 Software 3.0, 문맥 설계, 에이전트 운영 설계 방향성을 바탕으로 에이전트 하네스 구조를 설계하여 harness.md를 작성합니다. 사용자가 '카파시', '하네스', '에이전트 운영', '문맥 설계', 'vibe coding 이후', '에이전트 운영 구조'를 언급할 때 사용하세요."
 argument-hint: "[경로 또는 생략]"
 user-invocable: true
 allowed-tools:
@@ -29,7 +29,7 @@ allowed-tools:
 
 프로젝트의 AI 작업 방식을 단순 프롬프트 묶음이 아니라 **에이전트가 반복적으로 성공하도록 돕는 하네스**로 설계한다.
 
-이 스킬은 Andrej Karpathy가 말한 Software 3.0, context engineering, agentic engineering 방향을 ACE에 맞게 운영 구조로 변환한다.
+이 스킬은 Andrej Karpathy가 말한 Software 3.0, 문맥 설계, 에이전트 운영 설계 방향을 ACE에 맞게 운영 구조로 변환한다.
 단, "harness engineering"이라는 용어 자체를 특정 개인에게 귀속하지 않는다. 여기서는 카파시 방향성에 OpenAI식 하네스 운영 관점을 결합해 사용한다.
 
 ## 핵심 원칙
@@ -44,7 +44,7 @@ allowed-tools:
 
 | 원칙 | 하네스 적용 |
 |------|------------|
-| Think Before Coding | 작업 전 goal contract, 가정, 완료 기준을 문서화한다. |
+| Think Before Coding | 작업 전 목표 계약, 가정, 완료 기준을 문서화한다. |
 | Simplicity First | 거대한 AGENTS/CLAUDE 문서보다 작은 스킬, 규칙, 산출물로 쪼갠다. |
 | Surgical Changes | 에이전트가 바꿀 수 있는 파일/범위/권한을 좁게 제한한다. |
 | Goal-Driven Execution | 테스트, 리뷰, 상태 갱신, 다음 액션으로 루프를 닫는다. |
@@ -96,7 +96,7 @@ allowed-tools:
 
 → harness.md에 "현재 하네스 지도" 섹션 저장
 
-### Step 2: Goal Contract 정의
+### Step 2: 목표 계약 정의
 
 작업 시작 전에 에이전트가 알아야 할 계약을 정리한다.
 
@@ -107,9 +107,9 @@ allowed-tools:
 - 완료 기준: 어떤 테스트/검증을 통과해야 하는가
 - 위험 범위: DB, 인증, 결제, 배포, 개인정보 등 승인 필요한 영역
 
-→ "Goal Contract" 섹션 저장
+→ "목표 계약" 섹션 저장
 
-### Step 3: Context Map 설계
+### Step 3: 문맥 지도 설계
 
 에이전트에게 긴 매뉴얼을 먹이지 말고 탐색 가능한 문맥 지도를 만든다.
 
@@ -119,9 +119,9 @@ allowed-tools:
 - 스킬별 입력/출력 연결
 - 최신 상태 확인 명령
 
-→ "Context Map" 섹션 저장
+→ "문맥 지도" 섹션 저장
 
-### Step 4: Execution Harness 설계
+### Step 4: 실행 하네스 설계
 
 에이전트 실행을 안정화하는 장치를 정의한다.
 
@@ -131,9 +131,9 @@ allowed-tools:
 - 멀티 에이전트 사용 조건: 병렬 가능 작업과 금지 작업
 - 상태 저장: `workspace/current`, `workspace/tasks`, frontmatter status
 
-→ "Execution Harness" 섹션 저장
+→ "실행 하네스" 섹션 저장
 
-### Step 5: Verification Gates 설계
+### Step 5: 검증 관문 설계
 
 프롬프트 약속이 아니라 기계적으로 확인 가능한 게이트를 우선한다.
 
@@ -143,7 +143,7 @@ allowed-tools:
 - 하네스 회귀 테스트
 - 수동 확인이 필요한 영역
 
-→ "Verification Gates" 섹션 저장
+→ "검증 관문" 섹션 저장
 
 ### Step 6: 개선 백로그 작성
 
@@ -176,13 +176,13 @@ summary: "에이전트 하네스 설계 — 핵심 개선 X개, 검증 게이트
 
 ## 1. 현재 하네스 지도
 
-## 2. Goal Contract
+## 2. 목표 계약
 
-## 3. Context Map
+## 3. 문맥 지도
 
-## 4. Execution Harness
+## 4. 실행 하네스
 
-## 5. Verification Gates
+## 5. 검증 관문
 
 ## 6. 개선 백로그
 ```
@@ -193,7 +193,7 @@ summary: "에이전트 하네스 설계 — 핵심 개선 X개, 검증 게이트
 ═══ 하네스 설계 완료 ═══
 
 [핵심 방향]
-- 프롬프트보다 context map / 검증 게이트 / 상태 저장을 우선
+- 프롬프트보다 문맥 지도 / 검증 관문 / 상태 저장을 우선
 
 [즉시 적용할 개선]
 1. ...
