@@ -4,6 +4,6 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# ACE (개인 분석 산출물 — 코드 레포에 포함하지 않음)
-workspace/
-.ace/
+# ACE (개인 분석 산출물 — 코드 레포에 포함하지 않음, 루트만)
+/workspace/
+/.ace/
