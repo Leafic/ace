@@ -1,6 +1,6 @@
 {
   "name": "ace-engine",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "ACE — Agent-powered Code Engine. Agent-portable task and skill orchestration harness.",
   "main": "ace",
   "bin": {
