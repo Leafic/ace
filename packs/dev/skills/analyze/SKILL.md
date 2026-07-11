@@ -52,7 +52,7 @@ allowed-tools:
 
 - 이슈번호가 없으면 `workspace/current/` 디렉토리를 생성해서 사용한다.
 - 산출물은 `workspace/current/analysis.md`에 저장한다.
-- 입력은 사용자 요청, `workspace/current/brief.md`, `README.md`, 관련 문서를 우선 읽는다.
+- 입력은 사용자 요청, `workspace/current/planning/request.md`(기획 정의서), `workspace/current/brief.md`, `README.md`, 관련 문서를 우선 읽는다.
 - 이 경우 `taskDetail.json` 갱신은 생략한다.
 
 ## ⚡ 이어하기 규칙 (필수)
@@ -90,7 +90,7 @@ allowed-tools:
 ### Step 1: 입력 수집
 
 - 이슈 트래커의 설명/첨부
-- `workspace/tasks/{번호}/planning/` 폴더의 기획서
+- `workspace/tasks/{번호}/planning/` 폴더의 기획서 (request.md가 있으면 기획 정의의 1차 기준)
 - `workspace/current/brief.md` 또는 사용자가 지정한 문서
 - 사용자가 대화로 제공한 요구사항
 
