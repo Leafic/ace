@@ -173,6 +173,101 @@ function initSeed(projectName) {
 }
 
 // ─────────────────────────────────────────────
+// grow 명령 — 검증된 부품을 하나씩 이식 (BLUEPRINT 성장 메뉴)
+// ─────────────────────────────────────────────
+
+const GROW_CATALOG = {
+  gate: {
+    blueprint: '4. 단일 검증 게이트',
+    desc: '검증을 한 입구로 모으는 게이트 에이전트',
+    signal: '오류가 검수를 통과해 나가는 일이 반복될 때',
+    items: [{ src: 'packs/dev/agents/gate.md', dest: '.claude/agents/gate.md' }],
+  },
+  judge: {
+    blueprint: '4. 단일 검증 게이트',
+    desc: '근거 기반 go/no-go 판단 스킬',
+    signal: '판단 근거가 흩어져 결론을 신뢰하기 어려울 때',
+    items: [{ src: 'packs/biz/skills/judge', dest: '.claude/skills/ace-judge' }],
+  },
+  researcher: {
+    blueprint: '5. 컨텍스트 격리 위임',
+    desc: '리서치 서브에이전트 — 원자료를 메인 컨텍스트 밖에서 소화',
+    signal: '리서치 원문·덤프로 컨텍스트가 자주 꽉 찰 때',
+    items: [{ src: 'packs/biz/agents/researcher.md', dest: '.claude/agents/researcher.md' }],
+  },
+  reviewer: {
+    blueprint: '5. 컨텍스트 격리 위임',
+    desc: '검수 서브에이전트 — 무거운 검수를 격리',
+    signal: '검수량이 많아 메인 흐름이 끊길 때',
+    items: [{ src: 'packs/dev/agents/reviewer.md', dest: '.claude/agents/reviewer.md' }],
+  },
+  hooks: {
+    blueprint: '3·6. 훅 강제',
+    desc: '쓰기 경로 강제 훅 세트 (task-pre-write 등)',
+    signal: '손편집·엉뚱한 위치 쓰기 사고가 2회 이상 났을 때',
+    items: [{ src: 'core/hooks', dest: '.claude/hooks' }],
+  },
+}
+
+function grow() {
+  const part = args[1]
+
+  if (!part) {
+    console.log('\n🌿 ACE grow — 성장 메뉴 (BLUEPRINT.md의 실제 재고)\n')
+    console.log('   실제 신호가 온 부품만 심어라. 짐작으로 짓지 마라.\n')
+    for (const [name, entry] of Object.entries(GROW_CATALOG)) {
+      console.log(`   ${name.padEnd(12)} ${entry.desc}`)
+      console.log(`   ${''.padEnd(12)} 신호: ${entry.signal} (${entry.blueprint})`)
+    }
+    console.log('\nUsage: ace grow <' + Object.keys(GROW_CATALOG).join('|') + '>\n')
+    return
+  }
+
+  const entry = GROW_CATALOG[part]
+  if (!entry) {
+    console.log(`\n✗ 알 수 없는 부품: ${part}`)
+    console.log('  ace grow 로 목록을 확인하세요\n')
+    process.exit(1)
+  }
+
+  console.log(`\n🌿 ACE grow — ${part} (${entry.blueprint})\n`)
+
+  const result = { added: [], skipped: [] }
+  for (const item of entry.items) {
+    const srcPath = path.join(ACE_ROOT, item.src)
+    const destPath = path.join(CWD, item.dest)
+    if (!fs.existsSync(srcPath)) {
+      console.log(`   ✗ 부품 원본이 없습니다: ${srcPath}`)
+      console.log('   → ace update 로 ACE 코어를 갱신하세요')
+      process.exit(1)
+    }
+    if (fs.statSync(srcPath).isDirectory()) {
+      mkdirSafe(destPath)
+      copyDirContentsIfAbsent(srcPath, destPath, result)
+    } else if (fs.existsSync(destPath)) {
+      result.skipped.push(destPath)
+    } else {
+      mkdirSafe(path.dirname(destPath))
+      fs.copyFileSync(srcPath, destPath)
+      result.added.push(destPath)
+    }
+  }
+
+  for (const f of result.added) console.log(`   ✓ ${path.relative(CWD, f)}`)
+  if (result.skipped.length > 0) {
+    console.log(`   ℹ ${result.skipped.length}개 파일은 이미 존재해 건드리지 않음`)
+  }
+
+  if (result.added.length > 0) {
+    console.log(`\n✅ ${part} 부품을 심었습니다`)
+    console.log('   이 프로젝트의 용어·맥락에 맞게 다듬어 쓰세요')
+    console.log('   심은 이유(신호)를 workspace/improvements/에 한 줄 남기면 좋습니다\n')
+  } else {
+    console.log(`\n✓ ${part} 부품은 이미 심어져 있습니다\n`)
+  }
+}
+
+// ─────────────────────────────────────────────
 // profile.yaml 생성
 // ─────────────────────────────────────────────
 
@@ -1261,6 +1356,8 @@ if (command === 'init') {
   start().catch(console.error)
 } else if (command === 'add-pack') {
   addPack()
+} else if (command === 'grow') {
+  grow()
 } else if (command === 'export-codex') {
   exportCodexSkills()
 } else if (command === 'update') {
@@ -1277,6 +1374,7 @@ Usage:
   ace start                                        대화형 세팅 가이드
   ace init [--pack dev|biz|all|seed] [--stack ...] [--mode solo|team]  직접 지정
   ace add-pack <dev|biz> [--stack ...] [--scaffold]  기존 설치에 팩 추가
+  ace grow [부품]                                    검증된 부품을 하나씩 이식 (씨앗 성장)
   ace export-codex [--pack dev|biz|all] [--global|--local|--dest <path>] Codex 앱용 스킬 번들 생성
   ace update                                       최신 버전 업데이트 + 프로젝트 스킬 갱신
   ace doctor                                       프로젝트/전역 스킬 설치 상태 점검
@@ -1286,6 +1384,7 @@ Commands:
   start      대화형으로 팩/스택/모드를 선택하여 프로젝트 초기화
   init       옵션을 직접 지정하여 프로젝트 초기화
   add-pack   기존 스킬 유지하면서 추가 팩 설치 (--scaffold로 코드 구조 생성)
+  grow       BLUEPRINT 성장 메뉴의 부품을 개별 이식 — 인자 없이 실행하면 목록
   export-codex Codex 앱/CLI에서 읽을 수 있는 skills 폴더 생성
   update     ~/.ace/ git pull + 현재 프로젝트 스킬/에이전트/규칙 갱신
   doctor     .ace, workspace, .claude, ~/.codex 상태 점검

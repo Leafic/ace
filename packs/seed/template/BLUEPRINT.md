@@ -71,13 +71,13 @@
 ACE 레포(~/.ace/)에 있다. 신호가 오면 처음부터 만들지 말고 아래에서 가져와
 지식노동 용어로 다듬어 심어라.
 
-| 결정 | ACE 부품 위치 |
-|------|---------------|
-| 1. SSoT + 플래그 + 롤업 | `workspace/tasks/taskDetail.json`·`taskIndex.json` 패턴 (dev 팩 참고) |
-| 4. 단일 검증 게이트 | `packs/dev/agents/gate.md`, `packs/biz/skills/judge/` |
-| 5. 컨텍스트 격리 위임 | `packs/biz/agents/researcher.md`, `packs/dev/agents/reviewer.md` |
-| 3·6. 훅 강제 | `core/hooks/` (task-pre-write.js, task-post-write.js, hooks.yaml) |
-| 7. 조건부 룰 로딩 | `core/hooks/hooks.yaml`의 경로 매칭 구조 |
+| 결정 | ACE 부품 | 심는 명령 |
+|------|----------|-----------|
+| 1. SSoT + 플래그 + 롤업 | `workspace/tasks/taskDetail.json`·`taskIndex.json` 패턴 (dev 팩 참고) | (직접 참고) |
+| 4. 단일 검증 게이트 | 게이트 에이전트 / 판단 스킬 | `ace grow gate` / `ace grow judge` |
+| 5. 컨텍스트 격리 위임 | 리서치 / 검수 서브에이전트 | `ace grow researcher` / `ace grow reviewer` |
+| 3·6. 훅 강제 | 쓰기 경로 강제 훅 세트 | `ace grow hooks` |
+| 7. 조건부 룰 로딩 | `core/hooks/hooks.yaml`의 경로 매칭 구조 | (직접 참고) |
 
-가져오는 법: 해당 파일을 이 프로젝트 `.claude/` 아래로 복사한 뒤 다듬는다.
-(추후 `ace grow <부품>` 명령으로 자동화 예정 — 고도화 2단계.)
+`ace grow` 를 인자 없이 실행하면 각 부품의 심는 신호가 함께 나온다.
+심은 뒤에는 이 프로젝트의 용어·맥락으로 다듬고, 심은 이유를 workspace/improvements/에 남긴다.
