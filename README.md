@@ -74,8 +74,9 @@ ACE는 크게 세 가지 팩으로 동작합니다.
 
 ## 설치
 
-- macOS / Linux: [README.mac.md](/Users/hjkim/project/ace/README.mac.md)
-- Windows: [README.windows.md](/Users/hjkim/project/ace/README.windows.md)
+- macOS / Linux: [README.mac.md](README.mac.md)
+- Windows: [README.windows.md](README.windows.md)
+- 설치 후 사용법 전체: **[GUIDE.md](GUIDE.md)** (상황별 워크플로, 채점 게이트, 스킬 레퍼런스)
 
 설치 스크립트:
 
