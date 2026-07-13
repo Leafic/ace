@@ -43,7 +43,7 @@ allowed-tools:
 **dev 파이프라인 체크:**
 - `analysis.md` → analyze 단계
 - `design.md` → design 단계
-- `development.md` → dev 단계
+- `development.md` → dev 단계 (frontmatter `gateScore`/`gateGrade`/`gatePassed`가 있으면 함께 표시)
 - `test.md` → test 단계
 - `workspace/wiki/work-log.md` → wiki 기록
 
@@ -51,7 +51,11 @@ allowed-tools:
 - `research.md` → research 단계
 - `model.md` → model 단계
 - `plan.md` → plan 단계
-- `judgement.md` → judge 단계
+- `judgement.md` → judge 단계 (frontmatter `verdict`: Go/No-Go/Pivot/Hold도 함께 읽는다)
+
+**biz→dev 다리 체크:**
+- `planning/request.md` → kickoff 단계 (기획 정의서)
+- `.claude/rules/conv-product.md` → 제품 컨벤션 존재 여부
 
 ### Step 4: 현황 출력
 
@@ -60,11 +64,11 @@ allowed-tools:
 ```
 ═══ {프로젝트명} 파이프라인 현황 ═══
 
+[biz] 리서치 → 모델링 → 계획 → 판단 → 기획확정
+  {상태} research → {상태} model → {상태} plan → {상태} judge({verdict}) → {상태} kickoff
+
 [dev] 분석 → 설계 → 구현 → 검증
   {상태} analyze → {상태} design → {상태} dev → {상태} test
-
-[biz] 리서치 → 모델링 → 계획 → 판단
-  {상태} research → {상태} model → {상태} plan → {상태} judge
 
 상태 아이콘:
   ✓ = 완료 (status: done)
@@ -103,7 +107,11 @@ allowed-tools:
 | research ✓, model ○ | `/ace-model` | 비즈니스 모델 설계 |
 | model ✓, plan ○ | `/ace-plan` | 실행 계획 수립 |
 | plan ✓, judge ○ | `/ace-judge` | Go/No-Go 판단 |
-| judge ✓ | 판단 완료! 결과에 따라 행동 | - |
+| judge ✓ (verdict: Go), kickoff ○ | `/ace-kickoff` | 기획 정의서 확정 (개발 직행 금지) |
+| judge ✓ (verdict: Hold) | 미검증 가정 검증 후 `/ace-judge` 재실행 | - |
+| judge ✓ (verdict: Pivot) | `/ace-research` | 새 방향 리서치 |
+| judge ✓ (verdict: No-Go) | 종료 또는 회고 기록(`/ace-wiki`) | - |
+| kickoff ✓ (request.md done) | dev 팩 설치 후 `/ace-analyze` (없으면 `ace add-pack dev`) | 개발 시작 |
 | 어딘가 ◆ | 해당 스킬 재실행 (이어하기) | 중단된 곳에서 이어서 |
 
 ### 토큰 안내

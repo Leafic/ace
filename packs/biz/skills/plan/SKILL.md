@@ -88,8 +88,11 @@ allowed-tools:
 
 **섹션 1. MVP 정의**
 - MoSCoW 우선순위 (Must/Should/Could/Won't)
-- MVP 성공 지표 (KPI)
+- MVP 성공 지표 (KPI) — 이후 kickoff의 '완료 기준(acceptance criteria)'으로 이관되므로 측정 가능한 형태(숫자+기간)로 쓴다
 - MVP 타임라인
+- **핵심 사용자 흐름** — Must 기능 기준 주요 시나리오(행동 순서). kickoff '사용자 흐름' 필드의 원천
+- **데이터/연동 개요** — 다뤄야 할 입력·출력·저장·외부 연동. kickoff '데이터/API' 필드의 원천
+- **예외·권한 개요** — 실패 케이스·권한 구분 등 알려진 것. kickoff '예외/권한' 필드의 원천 (모르면 '미확인'으로 남긴다 — 지어내지 않음)
 → 완료 시 plan.md 저장
 
 **섹션 2. 로드맵**
@@ -100,6 +103,7 @@ allowed-tools:
 
 **섹션 3. 리소스 계획**
 - 인력, 기술 스택, 인프라 비용, 총 예산
+- 비용·예산 수치는 `.claude/rules/conv-evidence.md`의 정량 표기 구조(값+기준시점+공개 출처+확신도)를 따른다
 → 완료 시 plan.md 저장
 
 **섹션 4. Go-to-Market 전략**
