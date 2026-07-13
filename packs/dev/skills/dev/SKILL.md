@@ -72,7 +72,8 @@ allowed-tools:
 
 ### 에이전트 호출 조건
 - **메인 세션이 직접 수행** (기본): 파일 5개 이하 수정, 단일 기능 구현
-- **gate/보조 에이전트 위임**: 현재 실행 환경에서 명시적으로 허용되고, 수정 파일이 10개 이상이며 전체 코드 검증이 필요한 경우만
+- **보조 에이전트 위임**: 현재 실행 환경에서 명시적으로 허용되고, 수정 파일이 10개 이상이며 전체 코드 검증이 필요한 경우만
+- **gate 검증(Step 3)은 규모와 무관하게 항상 수행한다** — 에이전트 호출이 안 되는 환경이면 메인 세션이 gate.md 채점표로 직접 채점 (이 조건과 별개)
 - **병렬 에이전트 금지**: 같은 파일을 여러 에이전트가 동시에 수정하지 않는다
 - **큰 파일 주의**: 필요한 부분만 offset/limit로 읽어서 요약 후 전달
 
@@ -86,9 +87,10 @@ allowed-tools:
 
 ### Step 1: 컨텍스트 로딩
 
-1. design.md 읽기 (없으면 analysis.md)
-2. 스택 컨벤션 로딩
-3. 기존 코드 파악 (변경 대상 파일)
+1. design.md 읽기 (없으면 analysis.md). status가 `done`이 아니거나 "기획 미정/확인 필요"가 남아 있으면 구현을 시작하지 않고 사용자에게 보고한다 (/ace-design으로 복귀 안내)
+2. `planning/request.md` 읽기 (있으면 — '기획 정의 확인' 6항목의 원천 문서)
+3. 스택 컨벤션 로딩 (제품 스타일 `conv-product.md` 포함)
+4. 기존 코드 파악 (변경 대상 파일)
 
 **이어하기 시**: development.md의 완료/미완료 항목 파악.
 
@@ -114,7 +116,7 @@ design.md 기반으로 코드를 구현한다.
 
 ### Step 4: 상태 갱신
 
-- development.md frontmatter: `status: done`
+- development.md frontmatter: `status: done`, `gateScore: {총점}`, `gateGrade: {등급}`, `gatePassed: true` (Step 3 채점 결과 기록 — status/wiki가 읽는다)
 - 이슈번호가 있을 때만 taskDetail.json의 `steps.development.status: completed` 갱신
 - 작업 목적, 주요 결정, 검증, 후속 과제를 `/ace-wiki`로 `workspace/wiki`에 기록
 

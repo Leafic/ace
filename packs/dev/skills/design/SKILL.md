@@ -83,9 +83,10 @@ allowed-tools:
 
 ### Step 1: 컨텍스트 로딩
 
-1. analysis.md 읽기 (있으면)
-2. 스택 컨벤션 로딩 (`.claude/rules/conv-*.md`, 없으면 저장소 README/설정 파일 기준)
-3. 기존 코드베이스 구조 파악
+1. analysis.md 읽기 (있으면). frontmatter status가 `done`이 아니면 사용자에게 알리고, 미해결 항목을 확인한 뒤 진행 여부를 묻는다
+2. `planning/request.md` 읽기 (있으면 — 기획 정의 확인 항목의 원천 문서)
+3. 스택 컨벤션 로딩 (`.claude/rules/conv-*.md` — 제품 스타일 `conv-product.md` 포함, 없으면 저장소 README/설정 파일 기준)
+4. 기존 코드베이스 구조 파악
 
 **이어하기 시**: 기존 design.md의 완료 섹션 파악 후 스킵.
 
@@ -109,10 +110,11 @@ allowed-tools:
 
 **섹션 5. 설계 결정**
 - 트레이드오프 기록
-→ 완료 시 design.md 저장, status: done
+→ 완료 시 design.md 저장
 
 ### Step 3: 상태 갱신
 
+- **done 판정 조건**: "기획 미정/확인 필요" 항목 0건, 또는 잔존 항목에 사용자 "이대로 진행" 승인이 기록됐을 때만 `status: done`. 미정이 남아 있으면 `in_progress` 유지 (dev는 design done 없이 시작하지 않는다)
 - design.md frontmatter: `status: done`
 - 이슈번호가 있을 때만 taskDetail.json의 `steps.design.status: completed` 갱신
 

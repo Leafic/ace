@@ -30,6 +30,7 @@ allowed-tools:
 ## 기획 정의 확인
 
 분석의 1차 목적은 구현을 시작하기 전에 기획 정의 범위를 확정하는 것이다.
+`planning/request.md`(기획 정의서)가 있으면 6필드를 우선 원천으로 쓰고, 없으면 /ace-kickoff 실행을 안내하거나 아래 항목을 직접 질문으로 채운다.
 요구사항을 유추하지 말고, 아래 항목 중 비어 있는 것은 "미해결 사항"에 남기고 사용자에게 질문한다.
 
 - 목표: 사용자가 얻어야 할 결과
@@ -114,12 +115,18 @@ allowed-tools:
 - 비정상 흐름, 경계 조건
 → 완료 시 analysis.md 저장
 
-**섹션 5. 미해결 사항**
-- 기획 모호성, 추가 확인 필요 항목
-→ 완료 시 analysis.md 저장, status: done
+**섹션 5. 완료 기준 (acceptance criteria)**
+- `planning/request.md`의 '완료 기준'을 옮겨 적고 기능 요구사항과 매핑한다 (design/test가 이 표를 기준으로 검증)
+- request.md가 없으면 사용자에게 완료 기준을 질문해 채운다 — 유추 금지
+→ 완료 시 analysis.md 저장
+
+**섹션 6. 미해결 사항**
+- 기획 모호성, 추가 확인 필요 항목 (공백으로 분리 표기 — `.claude/rules/conv-evidence.md`)
+→ 완료 시 analysis.md 저장
 
 ### Step 3: 상태 갱신
 
+- **done 판정 조건**: 미해결 사항 0건, 또는 잔존 항목에 대해 사용자가 "이대로 진행"을 승인하고 그 승인을 미해결 표에 기록했을 때만 `status: done`. 그 외에는 `in_progress` 유지
 - analysis.md frontmatter: `status: done`
 - 이슈번호가 있을 때만 taskDetail.json의 `steps.analysis.status: completed` 갱신
 

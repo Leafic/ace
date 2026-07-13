@@ -29,8 +29,19 @@ allowed-tools:
 ## 기획 정의 확인
 
 테스트는 acceptance criteria를 기준으로 작성한다.
+기준의 1차 원천은 `planning/request.md`(기획 정의서)의 '완료 기준'과 '예외/권한' 필드이고, 없으면 analysis.md의 완료 기준을 쓴다.
 요구사항을 유추해서 성공/실패 기준을 만들지 않는다.
-기준이 없으면 먼저 사용자에게 기대 동작과 완료 기준을 질문하고, 확인된 기준만 test.md에 반영한다.
+기준이 어디에도 없으면 먼저 사용자에게 기대 동작과 완료 기준을 질문하고, 확인된 기준만 test.md에 반영한다.
+
+## 통과선 (기계 판정)
+
+`status: done`은 아래를 모두 만족할 때만 부여한다.
+
+- 작성한 테스트 **전부 통과** (실패·스킵 0건 — 스킵은 사유와 사용자 승인 기록 시만 예외)
+- acceptance criteria **전 항목 충족** (test.md에 항목별 충족 여부 표 작성)
+- 결과 보고는 `.claude/rules/conv-evidence.md`의 3종 구분(긍정/부정/공백)을 따른다 — 통과한 것, 실패한 것, **테스트하지 못한 공백**을 분리해 적는다
+
+불통과 시: `status: in_progress` 유지 → 구현 문제면 `/ace-dev`로 복귀를 안내하고, 기준 문제면 사용자에게 보고한다. 임의로 done 처리하지 않는다.
 
 ## 번호 없는 실행 모드
 
@@ -74,9 +85,10 @@ allowed-tools:
 
 ### Step 1: 컨텍스트 수집
 
-1. analysis.md, design.md, development.md 읽기 (있는 것만)
+1. `planning/request.md`(있으면 — 완료 기준·예외/권한의 1차 원천), analysis.md, design.md, development.md 읽기 (있는 것만)
 2. 구현된 코드 파악
 3. 기존 테스트 코드 확인
+4. 선행 development.md의 status가 `done`이 아니면 사용자에게 알리고 계획 수립까지만 진행한다 (섹션 3 실행은 구현 완료 후)
 
 **이어하기 시**: 기존 test.md의 완료 섹션 파악 후 스킵.
 
@@ -98,9 +110,10 @@ allowed-tools:
 - reviewer 에이전트가 가능하면 호출하고, 불가능하면 메인 세션이 직접 설계 vs 구현 정합성을 리뷰
 → 완료 시 test.md 저장
 
-**섹션 5. 잔존 리스크**
-- 미커버 영역, 알려진 이슈
-→ 완료 시 test.md 저장, status: done
+**섹션 5. acceptance criteria 충족 표 + 잔존 리스크**
+- 완료 기준 항목별 충족 여부 표 (충족/미충족/미검증)
+- 미커버 영역, 알려진 이슈 (공백으로 분리 표기)
+→ 완료 시 test.md 저장. **통과선을 모두 만족할 때만** status: done
 
 ### Step 3: 상태 갱신
 

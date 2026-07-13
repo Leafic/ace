@@ -47,6 +47,13 @@ allowed-tools:
 - 산출물은 `workspace/current/development.md`에 저장한다.
 - 이 경우 `taskDetail.json` 갱신은 생략하고, 변경 내용과 검증 결과만 기록한다.
 
+## ⚡ 이어하기 규칙 (필수)
+
+1. 대상 위치에 development.md가 이미 존재하면 frontmatter의 `status`를 읽는다.
+   - `status: done` → "이미 완료된 작업입니다. 이어서 추가 수정하시겠습니까?" 확인
+   - `status: in_progress` → 기존 기록을 읽고 완료된 변경은 다시 하지 않는다.
+2. 변경 항목 완료 시마다 development.md를 즉시 저장한다.
+
 ## 실행 흐름
 
 ### Step 1: 전처리
@@ -65,8 +72,9 @@ pending 상태인 analysis, design을 `skipped`로 변경한다.
 
 가능하면 `gate` 에이전트로 코드 품질을 검증한다.
 현재 실행 환경에서 보조 에이전트가 허용되지 않으면 메인 세션이 직접 리뷰한다.
-full dev와 동일한 채점 기준(gate.md 채점표: 80/B+ 이상 + CRITICAL 0건 통과)이지만 설계 대비 체크는 생략한다.
-불통과 findings는 수정 후 재채점하고, 임의로 통과시키지 않는다.
+full dev와 동일한 채점 기준(gate.md 채점표: 80/B+ 이상 + CRITICAL 0건 + unresolved 0건 통과)이지만 설계 대비 체크는 생략한다.
+불통과 findings는 수정 후 `previousFindings`를 전달해 재채점(최대 2회)하고, 임의로 통과시키지 않는다.
+통과 시 development.md frontmatter에 `gateScore`/`gateGrade`/`gatePassed`를 기록한다.
 
 ### Step 4: 상태 갱신
 
