@@ -12,8 +12,11 @@ this repository.
 - Keep ACE portable across agent runtimes. Do not hard-code behavior that only
   works in one assistant unless the feature is explicitly runtime-specific.
 - Preserve the artifact flow described in `README.md`: analysis, design,
-  development, test, research, model, plan, judgement, and wiki outputs should
-  remain reusable across projects.
+  development, test, research, model, plan, judgement, kickoff (planning
+  definition handoff), and wiki outputs should remain reusable across projects.
+- The `seed` pack is intentionally minimal: it starts empty and grows via
+  retrospection (`ace grow`). Never make seed installs overwrite existing
+  files, and do not pre-populate seed with pipelines, gates, or agents.
 - Treat ACE as a harness, not a prompt collection. Changes should strengthen
   repeatable workflows, validation, and handoff quality.
 

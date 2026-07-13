@@ -39,7 +39,7 @@ ACE는 아래 상황에서 특히 유용합니다.
 
 ## 어디에 쓸 수 있나
 
-ACE는 크게 두 가지 팩으로 동작합니다.
+ACE는 크게 세 가지 팩으로 동작합니다.
 
 `dev` 팩은 개발 작업용입니다.
 
@@ -57,8 +57,15 @@ ACE는 크게 두 가지 팩으로 동작합니다.
 - MVP와 실행 계획 수립
 - Go/No-Go/Pivot 판단
 
+`seed` 팩은 지식노동용 씨앗입니다. (보고·조사·제안 같은 문서 산출물)
+
+- dev/biz와 반대로 **비어 있게 시작**합니다 — 근거·인용 규약과 brief.md(SSoT)만 심습니다.
+- 같은 실패가 반복될 때만 `ace grow <부품>`으로 검증된 부품(게이트, 서브에이전트, 훅)을 하나씩 이식합니다.
+- 무엇을 언제 심을지는 씨앗과 함께 설치되는 `BLUEPRINT.md`(성장 메뉴)가 안내합니다.
+
 공통 스킬은 작업 운영을 돕습니다.
 
+- `ace-kickoff`: 사업 검증 산출물을 개발용 기획 정의서와 제품 스타일 컨벤션으로 변환
 - `ace-status`: 현재 파이프라인 상태 확인
 - `ace-wiki`: 작업 기록과 결정 사항을 내부 위키로 누적
 - `ace-retrospect`: 협업 패턴 회고
@@ -95,13 +102,37 @@ ace init --pack dev --stack nextjs-fastapi-pg --mode solo
 ace doctor
 ```
 
+### 신규 사업을 띄울 때 (추천 흐름)
+
+기획을 먼저 확정하고, 개발이 그 기획과 스타일을 따르게 하는 흐름입니다.
+
+1. `ace init --pack biz --mode solo` — 사업 검증부터 시작합니다.
+2. `/ace-research → /ace-model → /ace-plan → /ace-judge` — 아이디어를 검증하고 go/no-go를 판단합니다.
+3. `/ace-kickoff` — 검증 결과를 **기획 정의서**(`planning/request.md`: 목표·범위·사용자 흐름·데이터/API·예외/권한·완료 기준)와
+   **제품 스타일 컨벤션**(`.claude/rules/conv-product.md`: 타깃·톤·UX 원칙·용어집)으로 굳힙니다.
+   비어 있는 항목은 유추하지 않고 질문으로 채웁니다.
+4. `ace add-pack dev --stack nextjs-fastapi-pg` — 개발 팩을 얹습니다.
+5. `/ace-analyze → design → dev → test` — 개발은 기획 정의서를 1차 기준으로 읽고,
+   설계 단계는 제품 스타일 컨벤션을 로딩하므로 정의된 기획 스타일대로 진행됩니다.
+
+### 지식노동 산출물을 만들 때 (씨앗)
+
+```bash
+ace init --pack seed
+# claude 실행 → /new 로 첫 산출물 시작
+ace grow            # 성장 메뉴와 심는 신호 확인
+ace grow gate       # 신호가 왔을 때만 부품을 하나씩 이식
+```
+
 ## 핵심 명령
 
 ```bash
 ace start
 ace init --pack dev --stack nextjs-fastapi-pg --mode solo
 ace init --pack all --stack nextjs-fastapi-pg --mode solo
+ace init --pack seed
 ace add-pack biz
+ace grow
 ace export-codex --pack all --global
 ace doctor
 ace validate-skills
@@ -133,6 +164,10 @@ ACE_FORBIDDEN_TERMS="내부프로젝트명,회사명" ace validate-skills
 `workspace/tasks`는 이슈/태스크 단위 작업을 위한 공간입니다.
 `workspace/wiki`는 작업 이력, 결정 기록, 운영 메모를 누적하는 내부 위키입니다.
 
+`seed` 팩은 위와 달리 최소 구조만 만듭니다 — `CLAUDE.md`, `BLUEPRINT.md`, 근거·인용 규약,
+`/new`·`/check` 스킬, `workspace/projects/`(산출물), `library/`(재사용 자산).
+이미 있는 파일은 절대 덮어쓰지 않으므로 기존 레포에도 안전하게 심을 수 있습니다.
+
 ## Codex 사용
 
 Codex 앱/CLI에서 ACE 스킬을 쓰려면:
@@ -150,7 +185,7 @@ ace export-codex --pack all --global
 ## 지원 구성
 
 - 모드: `solo`, `team`
-- 팩: `dev`, `biz`, `all`
+- 팩: `dev`, `biz`, `all`, `seed`
 - 예시 스택:
   - `nextjs-fastapi-pg`
   - `spring-vue-mssql`

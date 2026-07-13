@@ -127,7 +127,9 @@ ace export-codex --pack all --local
 ace start
 ace init --pack dev --stack nextjs-fastapi-pg --mode solo
 ace init --pack all --stack nextjs-fastapi-pg --mode solo
+ace init --pack seed
 ace add-pack biz
+ace grow
 ace export-codex --pack all --global
 ace doctor
 ace update
