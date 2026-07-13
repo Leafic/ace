@@ -45,6 +45,7 @@ allowed-tools:
 2. **go/no-go 확인** — judgement.md의 결론을 확인한다. no-go/보류/없음이면 사용자에게
    "판단 없이 기획을 확정하시겠습니까?"를 확인받는다.
 3. **기획 정의서 작성** — `.ace/templates/request.template.md`를 복사해
+   (템플릿이 없으면 — 구버전 init 프로젝트 — 이 스킬의 6필드 구조로 직접 생성하고 `ace update` 실행을 안내)
    `workspace/tasks/{번호}/planning/request.md`(번호 없으면 `workspace/current/planning/request.md`)를 만들고,
    biz 산출물에서 6개 필드를 채운다: 목표 / 범위(MoSCoW) / 사용자 흐름 / 데이터·API / 예외·권한 / 완료 기준.
 4. **빈 필드 질문** — 비어 있는 필드는 사용자에게 한 번에 하나씩 질문해 채운다.
@@ -61,7 +62,7 @@ allowed-tools:
 ### 실행 전 체크
 1. 대상 위치에 `planning/request.md`가 이미 존재하는지 확인한다.
 2. 존재하면 frontmatter의 `status`를 읽는다.
-   - `status: done` → "이미 확정된 기획입니다. 재작성하시겠습니까?" 확인
+   - `status: done` → `.claude/rules/conv-product.md` 존재 여부를 함께 확인한다. 없으면 Step 5(제품 컨벤션)만 이어서 수행하고, 있으면 "이미 확정된 기획입니다. 재작성하시겠습니까?" 확인
    - `status: in_progress` → **이어하기 모드**: 빈 섹션부터 이어 작성, 완료된 섹션은 다시 쓰지 않는다.
 
 ### 섹션별 저장

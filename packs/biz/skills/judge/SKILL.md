@@ -71,7 +71,7 @@ allowed-tools:
 ## 번호 없는 실행 모드
 
 - 이슈번호가 없으면 `workspace/current/` 디렉토리를 생성해서 사용한다.
-- 산출물은 `workspace/current/judgement.md`에 저장한다.
+- 산출물은 `workspace/current/judgement.md`에 저장한다. 산출물 구조·frontmatter는 `.ace/templates/judgement.template.md`를 따른다.
 - 선행 자료는 `workspace/current/research.md`, `workspace/current/model.md`, `workspace/current/plan.md`를 우선 읽는다.
 - 이 경우 `taskDetail.json` 갱신은 생략한다.
 
@@ -79,7 +79,7 @@ allowed-tools:
 
 ### 에이전트 호출 조건
 - **메인 세션이 직접 수행** (기본): 섹션 1-2개 작성, 기존 산출물 요약/판단
-- **에이전트 위임**: 전체 섹션을 한번에 작성해야 하는 대규모 작업만
+- **에이전트 위임**: 전체 섹션을 한번에 작성해야 하는 대규모 작업만 (위임 대상: `judge` 서브에이전트)
 - **병렬 에이전트 금지**: 같은 산출물을 여러 에이전트가 동시에 쓰지 않는다
 - **큰 파일 주의**: 필요한 부분만 offset/limit로 읽어서 요약 후 전달
 
