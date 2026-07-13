@@ -179,7 +179,7 @@ function initSeed(projectName) {
 const GROW_CATALOG = {
   gate: {
     blueprint: '4. 단일 검증 게이트',
-    desc: '검증을 한 입구로 모으는 게이트 에이전트',
+    desc: '루브릭 채점(100점·B+ 통과선·피드백 반영 확인)으로 검증을 한 입구로 모으는 게이트 에이전트',
     signal: '오류가 검수를 통과해 나가는 일이 반복될 때',
     items: [{ src: 'packs/dev/agents/gate.md', dest: '.claude/agents/gate.md' }],
   },

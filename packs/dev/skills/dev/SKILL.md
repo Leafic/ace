@@ -102,12 +102,15 @@ design.md 기반으로 코드를 구현한다.
 3. 프론트엔드 — 타입 → API → 컴포넌트 → 페이지
 4. **각 항목 완료 후 즉시 development.md에 기록**
 
-### Step 3: 자동 검증
+### Step 3: 자동 검증 (채점 게이트)
 
 구현 완료 후:
-1. 가능하면 `gate` 에이전트 호출 (읽기 전용). 사용할 수 없으면 메인 세션이 직접 리뷰한다.
-2. findings 분류: auto-fixable → 즉시 수정 / needs-decision → 사용자에게 보고
-3. 자동 수정 루프 (최대 2회)
+1. 가능하면 `gate` 에이전트 호출 (읽기 전용). 사용할 수 없으면 메인 세션이 gate.md의 채점표로 직접 채점한다.
+2. `score.passed` 판정 (총점 80/B+ 이상, CRITICAL 0건, unresolved 0건)을 확인한다.
+3. 불통과면: auto-fixable → 즉시 수정 → `previousFindings`를 전달해 재채점 (최대 2회).
+   재채점은 이전 findings가 실제로 해소됐는지 확인하며, 미해소 항목이 있으면 통과되지 않는다.
+4. 그래도 불통과거나 needs-decision이 남으면 점수·등급·미해소 목록과 함께 사용자에게 보고한다.
+   **passed 없이 임의로 Step 4(status: done)로 넘어가지 않는다.**
 
 ### Step 4: 상태 갱신
 
